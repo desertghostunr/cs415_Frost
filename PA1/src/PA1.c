@@ -20,6 +20,10 @@
 #include "mpi.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
+
+//free function prototypes ///////////////////////////////////
+long long GetCurrentMilliSecTime( );
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -50,13 +54,13 @@ int main( int argc, char *argv[ ] )
 
         if( taskID == 0 )
         {            
-            sTime = MPI_Wtime( ); //start timing
+            sTime = GetCurrentMilliSecTime( ); //start timing
             
             MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 1, MPI_COMM_WORLD );
 
             MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
-            eTime = MPI_Wtime( ); //stop timing
+            eTime = GetCurrentMilliSecTime( ); //stop timing
 
             fTime = ( eTime - sTime ); //get time
 
@@ -78,4 +82,19 @@ int main( int argc, char *argv[ ] )
     MPI_Finalize( );
 
     return 0;
+}
+
+// free function implementation //////////////////////////////////
+
+long long GetCurrentMilliSecTime( )
+{
+    long long retTime;
+
+    timeval tVal;
+
+    gettimeofday( &tVal, NULL );
+
+    retTime = tVal.tv_sec * 1000 + tVal.tv_usec / 1000;
+
+    return ret;
 }
