@@ -1,0 +1,1 @@
+mpicc -lpmi -o PA1 PA1.c
