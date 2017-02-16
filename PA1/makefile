@@ -14,8 +14,8 @@ $(OUTPUT): $(FILE)
 	$(CC) $(CXXFLAGS) -o $(OUTPUT) $(FILE) $(LIBS)
 
 # use this to run
-run: $(OUTPUT)
-	srun -n16 $(OUTPUT) 1
+run1: $(OUTPUT)
+	srun -n2 $(OUTPUT) 1 1
 
 clean:
 	-@if rm $(OUTPUT) 2>/dev/null || true; then echo "Cleaned"; else echo "Nothing to clean"; fi

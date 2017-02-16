@@ -23,14 +23,19 @@
 #include <sys/time.h>
 
 //free function prototypes ///////////////////////////////////
-long long GetCurrentMilliSecTime( );
+long long GetCurrentMicroSecTime( );
+
+double ConvertTimeToSeconds( long long usTime );
+
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
-    double fTime, sTime, eTime;
+    long long eTime, sTime;
+    double fTime;
     int taskID;
-    int numberOfInts = 1;
+    int counter;
+    int numberOfInts = 1, numberOfTests = 1;
     int* dataPtr = NULL;    
 
     MPI_Init( &argc, &argv );
@@ -40,44 +45,70 @@ int main( int argc, char *argv[ ] )
     if( argc > 1 )
     {
         numberOfInts = atoi( argv[ 1 ] );
-    }   
+    }
 
-    if( numberOfInts <= 0 )
+    if( argc > 2 )
     {
-        printf( "%d is not a valid number of ints to pass.\n", numberOfInts );
+        numberOfTests = atoi( argv[ 2 ] );
+    }
+    
+
+    if( numberOfInts <= 0 || numberOfTests <= 0 )
+    {
+        printf( "You specified %d ints and %d tests.\n", numberOfInts, numberOfTests );
+        printf( "Both of these values must at least equal to 1.\n");
         printf( "Error from task %d.\n", taskID );
     }
     else
     {
-        
+
         dataPtr = ( int * ) malloc( numberOfInts * sizeof( int ) );
 
+	for( counter = 0; counter < numberOfInts; counter++ )
+        {
+	    dataPtr[ counter ] = counter;
+	}
+
         if( taskID == 0 )
-        {            
-            sTime = GetCurrentMilliSecTime( ); //start timing
-            
-            MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 1, MPI_COMM_WORLD );
+        {
+	  
+	    printf( "Transfering %d integers. The time in seconds will be displayed below:\n", numberOfInts);
 
-            MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+	    for( counter = 0; counter < numberOfTests; counter++ )
+	    {
+                 sTime = GetCurrentMicroSecTime( ); //start timing
 
-            eTime = GetCurrentMilliSecTime( ); //stop timing
+	         MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 1, MPI_COMM_WORLD );
 
-            fTime = ( eTime - sTime ); //get time
 
-            printf( "Transfered %d integers in %.9f seconds.\n", numberOfInts, fTime );
+	         MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+
+
+	         eTime = GetCurrentMicroSecTime( ); //stop timing
+
+	         fTime = ConvertTimeToSeconds( eTime - sTime ); //get time
+
+                 printf( "%.9f\n", fTime );
+
+	     
+	    }
+	   
         }
         else if( taskID == 1 )
         {
-            MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
+	   for( counter = 0; counter < numberOfTests; counter++ )
+	   {
+	  
+                MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
-            MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 0, MPI_COMM_WORLD );
+                MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 0, MPI_COMM_WORLD );
+
+           }
         }
-
         free( dataPtr );
 
         dataPtr = NULL;
     }
-    
 
     MPI_Finalize( );
 
@@ -86,15 +117,23 @@ int main( int argc, char *argv[ ] )
 
 // free function implementation //////////////////////////////////
 
-long long GetCurrentMilliSecTime( )
+long long GetCurrentMicroSecTime( )
 {
     long long retTime;
-
-    timeval tVal;
+    
+    struct timeval tVal;
 
     gettimeofday( &tVal, NULL );
 
     retTime = tVal.tv_sec * 1000 + tVal.tv_usec / 1000;
 
-    return ret;
+    return retTime;
 }
+
+double ConvertTimeToSeconds( long long usTime )
+{
+  return ( double ) usTime / 1000000.0;
+}
+
+
+
