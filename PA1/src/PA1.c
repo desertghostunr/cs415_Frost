@@ -23,25 +23,24 @@
 #include <sys/time.h>
 
 //free function prototypes ///////////////////////////////////
-long long GetCurrentMicroSecTime( );
+unsigned long long GetCurrentMicroSecTime( );
 
-double ConvertTimeToSeconds( long long usTime );
-
+double ConvertTimeToSeconds( unsigned long long usTime );
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
-    long long eTime, sTime;
-    double fTime;
+    unsigned long long eTime, sTime;
+    double fTime, avgTime;
     int taskID;
     int counter;
     int numberOfInts = 1, numberOfTests = 1;
-    int* dataPtr = NULL;    
+    int* dataPtr = NULL;
 
     MPI_Init( &argc, &argv );
 
     MPI_Comm_rank( MPI_COMM_WORLD, &taskID );
-    
+
     if( argc > 1 )
     {
         numberOfInts = atoi( argv[ 1 ] );
@@ -51,7 +50,7 @@ int main( int argc, char *argv[ ] )
     {
         numberOfTests = atoi( argv[ 2 ] );
     }
-    
+
 
     if( numberOfInts <= 0 || numberOfTests <= 0 )
     {
@@ -71,8 +70,10 @@ int main( int argc, char *argv[ ] )
 
         if( taskID == 0 )
         {
-	  
+
 	    printf( "Transfering %d integers. The time in seconds will be displayed below:\n", numberOfInts);
+
+            avgTime = 0.0;
 
 	    for( counter = 0; counter < numberOfTests; counter++ )
 	    {
@@ -88,17 +89,19 @@ int main( int argc, char *argv[ ] )
 
 	         fTime = ConvertTimeToSeconds( eTime - sTime ); //get time
 
+                 avgTime += fTime;
+
                  printf( "%.9f\n", fTime );
 
-	     
 	    }
-	   
+
+            printf( "Average time: %.9f\n", (avgTime  / ( double ) numberOfTests ) );
         }
         else if( taskID == 1 )
         {
 	   for( counter = 0; counter < numberOfTests; counter++ )
 	   {
-	  
+
                 MPI_Recv( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
                 MPI_Send( &dataPtr[ 0 ], numberOfInts, MPI_INT, 0, 0, MPI_COMM_WORLD );
@@ -117,20 +120,20 @@ int main( int argc, char *argv[ ] )
 
 // free function implementation //////////////////////////////////
 
-long long GetCurrentMicroSecTime( )
+unsigned long long GetCurrentMicroSecTime( )
 {
-    long long retTime;
-    
+    unsigned long long retTime;
+
     struct timeval tVal;
 
     gettimeofday( &tVal, NULL );
 
-    retTime = tVal.tv_sec * 1000 + tVal.tv_usec / 1000;
+    retTime = ( unsigned long long ) (tVal.tv_sec * 1000000L) +( unsigned long long ) tVal.tv_usec;
 
     return retTime;
 }
 
-double ConvertTimeToSeconds( long long usTime )
+double ConvertTimeToSeconds( unsigned long long usTime )
 {
   return ( double ) usTime / 1000000.0;
 }
