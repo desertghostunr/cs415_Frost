@@ -56,7 +56,6 @@ int main( int argc, char *argv[ ] )
     {
         timingTest = atoi( argv[ 3 ] );
     }
-    printf( "Timingtest: %d\n", timingTest );
 
     if( numberOfInts <= 0 || numberOfTests <= 0 || timingTest <= 0 )
     {
@@ -84,11 +83,11 @@ int main( int argc, char *argv[ ] )
             {
                 timingTestCountPtr[ tCounter ] = 1;
             }
-        }      
+        }
 
-        if( taskID == 0 )
+        for( tCounter = 0; tCounter < timingTest; tCounter++ )
         {
-            for( tCounter = 0; tCounter < timingTest; tCounter++ )
+            if( taskID == 0 )
             {
                 printf( "Transfering %d integers. The time in seconds will be displayed below:\n", timingTestCountPtr[ tCounter ] );
 
@@ -112,13 +111,10 @@ int main( int argc, char *argv[ ] )
 
                 }
 
-                printf( "%.9f\n", (avgTime  / ( double ) numberOfTests ) );
-            }           
+                printf( "%.9f\n", (avgTime  / ( double ) numberOfTests ) );           
             
-        }
-        else if( taskID == 1 )
-        {
-            for( tCounter = 0; tCounter < timingTest; tCounter++ )
+            }
+            else if( taskID == 1 )
             {
                 for( counter = 0; counter < numberOfTests; counter++ )
                 {
@@ -126,9 +122,9 @@ int main( int argc, char *argv[ ] )
 
                     MPI_Recv( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );           
                 }
-            }
             
-        }
+            }
+        }        
 
         free( dataPtr );
 
