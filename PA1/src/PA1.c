@@ -89,7 +89,7 @@ int main( int argc, char *argv[ ] )
         {
             if( taskID == 0 )
             {
-                printf( "Transfering %d integers. The time in seconds will be displayed below:\n", timingTestCountPtr[ tCounter ] );
+                printf( "Transfered %d integers in", timingTestCountPtr[ tCounter ] );
 
                 avgTime = 0.0;
 
@@ -100,7 +100,7 @@ int main( int argc, char *argv[ ] )
 
                     MPI_Send( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 1, MPI_COMM_WORLD );
 
-                    MPI_Recv( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );               
+                    MPI_Recv( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
 
                     eTime = GetCurrentMicroSecTime( ); //stop timing
@@ -111,20 +111,20 @@ int main( int argc, char *argv[ ] )
 
                 }
 
-                printf( "%.9f\n", (avgTime  / ( double ) numberOfTests ) );           
-            
+                printf( " %.9f seconds\n", (avgTime  / ( double ) numberOfTests ) );
+
             }
             else if( taskID == 1 )
             {
                 for( counter = 0; counter < numberOfTests; counter++ )
                 {
-                    MPI_Send( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 1, MPI_COMM_WORLD );
+                    MPI_Recv( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE );
 
-                    MPI_Recv( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE );           
+                    MPI_Send( &dataPtr[ 0 ], timingTestCountPtr[ tCounter ], MPI_INT, 0, 0, MPI_COMM_WORLD );
                 }
-            
+
             }
-        }        
+        }
 
         free( dataPtr );
 
