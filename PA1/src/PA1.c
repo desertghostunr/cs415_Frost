@@ -56,7 +56,7 @@ int main( int argc, char *argv[ ] )
     {
         timingTest = atoi( argv[ 3 ] );
     }
-
+    printf( "Timingtest: %d\n", timingTest );
 
     if( numberOfInts <= 0 || numberOfTests <= 0 || timingTest <= 0 )
     {
