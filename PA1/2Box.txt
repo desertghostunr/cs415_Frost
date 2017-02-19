@@ -1,0 +1,6 @@
+make: Nothing to be done for 'all'.
+PA1 on two boxes
+srun -N2 PA1 1 30
+The following timings are the average of 30 tests:
+Integers 	 Seconds
+1 	  0.000168733

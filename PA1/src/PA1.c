@@ -89,15 +89,15 @@ int main( int argc, char *argv[ ] )
 
         if( taskID == 0 )
         {
-            printf("The following timings are the average of %d tests:", numberOfTests );
-            printf( "Integers     Seconds\n");
+            printf("The following timings are the average of %d tests:\n", numberOfTests );
+            printf( "Integers \t Seconds\n");
         }
 
         for( tCounter = 0; tCounter < timingTest; tCounter++ )
         {
             if( taskID == 0 )
             {
-                printf( "%d         ", timingTestCountPtr[ tCounter ] );
+                printf( "%d \t  ", timingTestCountPtr[ tCounter ] );
 
                 avgTime = 0.0;
 
