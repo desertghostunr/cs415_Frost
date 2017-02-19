@@ -87,11 +87,17 @@ int main( int argc, char *argv[ ] )
             }
         }
 
+        if( taskID == 0 )
+        {
+            printf("The following timings are the average of %d tests:", numberOfTests );
+            printf( "Integers     Seconds\n");
+        }
+
         for( tCounter = 0; tCounter < timingTest; tCounter++ )
         {
             if( taskID == 0 )
             {
-                printf( "Transfered %d integers in", timingTestCountPtr[ tCounter ] );
+                printf( "%d         ", timingTestCountPtr[ tCounter ] );
 
                 avgTime = 0.0;
 
@@ -113,7 +119,7 @@ int main( int argc, char *argv[ ] )
 
                 }
 
-                printf( " %.9f seconds\n", (avgTime  / ( double ) numberOfTests ) );
+                printf( "%.9f\n", (avgTime  / ( double ) numberOfTests ) );
 
             }
             else if( taskID == 1 )
