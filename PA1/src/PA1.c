@@ -27,6 +27,8 @@ unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
 
+float smoothStep( float e0, float e1, float x );
+
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
@@ -77,7 +79,7 @@ int main( int argc, char *argv[ ] )
 
         for( tCounter = 0; tCounter < timingTest; tCounter++ )
         {
-            timingTestCountPtr[ tCounter ] = numberOfInts / ( timingTest / ( tCounter + 1 ) );
+            timingTestCountPtr[ tCounter ] = ( int ) numberOfInts * smoothStep( 1.0f, (float) timingTest, (float) ( tCounter + 1) );
 
             if( timingTestCountPtr[ tCounter ] < 1 )
             {
@@ -160,5 +162,19 @@ double ConvertTimeToSeconds( unsigned long long usTime )
     return ( double ) usTime / 1000000.0;
 }
 
+float smoothStep( float e0, float e1, float x )
+{
+    x = ( ( x - e0 ) / ( e1 - e0 ) );
 
+    if( x < 0.0f )
+    {
+        x = 0.0f;
+    }
+    else if( x > 1.0f )
+    {
+        x = 1.0f;
+    }
+
+    return x * x * ( 3 - 2 * x );
+}
 
