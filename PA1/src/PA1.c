@@ -87,6 +87,11 @@ int main( int argc, char *argv[ ] )
             }
         }
 
+        if( timingTest == 1 )
+        {
+           timingTestCountPtr[ 0 ] = numberOfInts;
+        }
+
         if( taskID == 0 )
         {
             printf("The following timings are the average of %d tests:\n", numberOfTests );
