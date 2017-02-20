@@ -27,7 +27,7 @@ run_multiple_box: $(OUTPUT)
 	srun -N2 $(OUTPUT) 1 30
 
 run_timing_test: $(OUTPUT)
-	srun -N2 $(OUTPUT) 100000 30 100
+	srun -N2 $(OUTPUT) 10000 30 10000
 
 clean:
 	-@if rm $(OUTPUT) 2>/dev/null || true; then echo "Cleaned"; else echo "Nothing to clean"; fi

@@ -1,4 +1,4 @@
-# PA0: "Hello World"
+# PA1: "Ping Pong"
 
 # Dependencies, Building, and Running
 
@@ -17,10 +17,27 @@ There are two options to build this project, CMake or Makefile.  CMake makes inc
 The second option is to use the provided Makefile, which is easier to look at and compile from.
 
 # Quick running
-You may simple run the build script with a few commands.
+You may build script with a few commands.
 ```bash
 chmod +x buildscript.sh
-./buildscript
+./buildscript.sh
+```
+
+To build and run on one box use the following commands:
+```bash
+chmod +x One_box.sh
+./One_box.sh
+```
+
+To build and run on two boxes use the following commands:
+```bash
+chmod +x Two_box.sh
+./Two_box.sh
+```
+To build and run the timing test use the following commands:
+```bash
+chmod +x Timing.sh
+./Timing.sh
 ```
 
 Running the make in a separate directory will allow easy cleanup of the build data, and an easy way to prevent unnecessary data to be added to the git repository.  
@@ -36,8 +53,14 @@ mkdir build
 cd build
 cp ../makefile .
 make
-srun -n16 ../bin/mpi_hello
+srun -N2 PA1 1000 1
 ```
+
+What are those command line parameters?
+PA1 has the following command line parameters:
+
+PA1 [ integer: number of ints ] [ integer: number of tests ] [ integer: number of timing tests to run ]
+
 To clean the files you've created, there is an extra target, `clean`.
 Also, there is a running target that may be changed as per assignment requirements, `run`.
 These are for convienience only, you may add/remove them as necessary.

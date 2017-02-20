@@ -79,7 +79,14 @@ int main( int argc, char *argv[ ] )
 
         for( tCounter = 0; tCounter < timingTest; tCounter++ )
         {
-            timingTestCountPtr[ tCounter ] = ( int ) numberOfInts * smoothStep( 1.0f, (float) timingTest, (float) ( tCounter + 1) );
+            if( timingTest == numberOfInts )
+            {
+                timingTestCountPtr[ tCounter ] = tCounter + 1;
+            }
+            else
+            {
+                timingTestCountPtr[ tCounter ] = ( int ) numberOfInts * smoothStep( 1.0f, (float) timingTest, (float) ( tCounter + 1) );
+            }
 
             if( timingTestCountPtr[ tCounter ] < 1 )
             {
