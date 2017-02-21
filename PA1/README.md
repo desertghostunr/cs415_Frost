@@ -62,9 +62,6 @@ PA1 has the following command line parameters:
 PA1 [ integer: number of ints ] [ integer: number of tests ] [ integer: number of timing tests to run ]
 
 To clean the files you've created, there is an extra target, `clean`.
-Also, there is a running target that may be changed as per assignment requirements, `run`.
-These are for convienience only, you may add/remove them as necessary.
 ```bash
 make clean
-make run
 ```
