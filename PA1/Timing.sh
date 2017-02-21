@@ -1,17 +1,6 @@
 #!/bin/bash
-BUILD_DIR="build/"
+#SBATCH --nodes=2
+#SBATCH --mem=2048
+#SBATCH --time=00:15:00
 
-# building setup
-if [ ! -d "$BUILD_DIR" ]; then
-	mkdir build
-fi
-cd build
-cp ../makefile .
-
-# building
-make
-
-echo "PA1 timing test" && make run_timing_test
-
-# cleaning (optional for build script)
-# make clean
+srun PA1 10000 30 10000

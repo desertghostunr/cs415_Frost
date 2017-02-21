@@ -1,17 +1,7 @@
 #!/bin/bash
-BUILD_DIR="build/"
+#SBATCH --nodes=2
+#SBATCH --mem=2048
+#SBATCH --time=00:1:00
 
-# building setup
-if [ ! -d "$BUILD_DIR" ]; then
-	mkdir build
-fi
-cd build
-cp ../makefile .
+srun PA1 1 30
 
-# building
-make
-
-echo "PA1 on two boxes" && make run_multiple_box
-
-# cleaning (optional for build script)
-# make clean

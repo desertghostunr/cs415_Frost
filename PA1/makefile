@@ -10,6 +10,7 @@ ifneq "$(wildcard $(SRCDIR) )" ""
 else
 	FILE = src/PA1.c
 endif
+
 # uncomment below if/when you have a folder called include that holds potential header files
 #INCLUDES=-I../include
 OUTPUT=PA1
@@ -19,15 +20,5 @@ all: $(OUTPUT)
 $(OUTPUT): $(FILE)
 	$(CC) $(CXXFLAGS) -o $(OUTPUT) $(FILE) $(LIBS)
 
-# use this to run
-run_same_box: $(OUTPUT)
-	srun -n2 $(OUTPUT) 1 30
-
-run_multiple_box: $(OUTPUT)
-	srun -N2 $(OUTPUT) 1 30
-
-run_timing_test: $(OUTPUT)
-	srun -N2 $(OUTPUT) 10000 30 10000
-
 clean:
-	-@if rm $(OUTPUT) 2>/dev/null || true; then echo "Cleaned"; else echo "Nothing to clean"; fi
+	rm PA1
