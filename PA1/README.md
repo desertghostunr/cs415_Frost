@@ -13,55 +13,41 @@ ssh username@h1.cse.unr.edu
 ```
 
 ## Building and Running
-There are two options to build this project, CMake or Makefile.  CMake makes including new libraries easier, and handles new files added automatically to the src and include directory.  CMake, however, requires a small new learning curve, but it will make things easier in the long run.  Also, it is recommended to learn CMake for industry C/C++.
-The second option is to use the provided Makefile, which is easier to look at and compile from.
+Build this project using the provided makefile.
 
 # Quick running
-You may build script with a few commands.
+You may build script with a command.
 ```bash
-chmod +x buildscript.sh
-./buildscript.sh
+make
 ```
 
-To build and run on one box use the following commands:
+To run on one box use the following command:
 ```bash
-chmod +x One_box.sh
-./One_box.sh
+sbatch One_box.sh
 ```
 
-To build and run on two boxes use the following commands:
+To run on two boxes use the following command:
 ```bash
-chmod +x Two_box.sh
-./Two_box.sh
+sbatch Two_box.sh
 ```
-To build and run the timing test use the following commands:
+To run the timing test use the following command:
 ```bash
-chmod +x Timing.sh
-./Timing.sh
-```
-
-Running the make in a separate directory will allow easy cleanup of the build data, and an easy way to prevent unnecessary data to be added to the git repository.  
-
-### CMake Instructions
-TBD
+sbatch Timing.sh
 
 ### Makefile Instructions
-The makefile works as expected and must be updated with new files added in.
+The makefile works as expected.
 
 ```bash
-mkdir build
-cd build
-cp ../makefile .
 make
-srun -N2 PA1 1000 1
 ```
-
-What are those command line parameters?
-PA1 has the following command line parameters:
-
-PA1 [ integer: number of ints ] [ integer: number of tests ] [ integer: number of timing tests to run ]
 
 To clean the files you've created, there is an extra target, `clean`.
 ```bash
 make clean
 ```
+
+### What are those command line parameters?
+PA1 has the following command line parameters:
+
+PA1 [ integer: number of ints ] [ integer: number of tests ] [ integer: number of timing tests to run ]
+
