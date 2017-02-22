@@ -33,7 +33,7 @@ sbatch Two_box.sh
 To run the timing test use the following command:
 ```bash
 sbatch Timing.sh
-
+```
 ### Makefile Instructions
 The makefile works as expected.
 
