@@ -1,24 +1,25 @@
-# set flags and compiler, as well as file var
-CC=mpic++
+CC=g++ #mpic++
 CXXFLAGS=-Wall
 LIBS=-lpmi
-# feel free to either add files here (for more compilcated src's), or create more vars, or just manually type them in. Up to you.
-SRCDIR = ../src
 
-ifneq "$(wildcard $(SRCDIR) )" ""
-	FILE=../src/PA2.c
-else
-	FILE = src/PA2.c
+SRCDIR = ../src
+OBJ_FILES= Mandelbrot.o PA2_Sequential.o PIMFuncs.o
+
+ifeq "$(wildcard $(SRCDIR) )" ""
+	SRCDIR = src
 endif
 
-# uncomment below if/when you have a folder called include that holds potential header files
-#INCLUDES=-I../include
-OUTPUT=PA2
+all: $(OBJ_FILES)
+	$(CC) $(CXXFLAGS) -o PA2_Sequential $(OBJ_FILES) #$(LIBS)
 
-all: $(OUTPUT)
+PA2_Sequential.o: $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.cpp
 
-$(OUTPUT): $(FILE)
-	$(CC) $(CXXFLAGS) -o $(OUTPUT) $(FILE) $(LIBS)
+Mandelbrot.o: $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Mandelbrot.cpp
+
+PIMFuncs.o: $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PIMFuncs.cpp
 
 clean:
-	rm PA2
+	\rm *.o PA2

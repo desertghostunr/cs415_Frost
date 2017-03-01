@@ -1,11 +1,12 @@
+#include "Mandelbrot.h"
 
-int PixelGenerator( const ComplexNumber & complex )
+int mb::PixelGenerator( const ComplexNumber & complex )
 {
     int itCount, maxIts;
     ComplexNumber z;
     float temp, sqLength;
 
-    maxIts = 256;
+    maxIts = 255;
 
     z.real  = 0;
     z.imaginary = 0;

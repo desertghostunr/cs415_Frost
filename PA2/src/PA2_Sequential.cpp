@@ -16,7 +16,7 @@
 
 
 // header files //////////////////////////////////////////////
-
+#include <sys/time.h>
 #include <iostream>
 #include <vector>
 #include <sstream>
@@ -33,12 +33,14 @@ double ConvertTimeToSeconds( unsigned long long usTime );
 int main( int argc, char *argv[ ] )
 {
     unsigned long long sTime, eTime;
-    std::vector<std::vector<char>> image; 
+    std::vector<std::vector<unsigned char>> image; 
     size_t row, col;
+    int width = 0, height = 0;
     std::stringstream strStream;
     std::string saveName;
-    mb::ComplexNumber cNum;
+    mb::ComplexNumber cNum, min, max, scale;
 
+    //cmd line params
     if( argc < 4 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
@@ -46,29 +48,62 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
     
-    strStream.str( ) = argv[ 2 ];
-    strStream >> col;
+    strStream.str( argv[ 1 ] );
+    strStream >> width;
 
-    strStream.str( ) = argv[ 3 ];
-    strStream >> row;
+    strStream.str("");
+    strStream.clear();
 
-    saveName = argv[ 4 ];
+    strStream.str( argv[ 2 ] );
+    strStream >> height;
 
-    image.resize( row );
+    if( width <= 0 || height <= 0 )
+    {
+        std::cout<< "Invalid image height or width specified."<<std::endl;
+        std::cout<<"Width is "<<width<<std::endl;
+        std::cout<<"Height is "<<height<<std::endl;
+        return -1;
+    }
+
+    saveName = argv[ 3 ];
+
+    //alloc image
+    image.resize( height );
 
     for( row = 0; row < image.size( ); row++ )
     {
-        image[ row ].resize( col );
+        image[ row ].resize( width );
     }
+
+    //calculate min and max vals
+    max.real = 2;
+    max.imaginary = 2;
+    min.real = -2;
+    min.imaginary = -2;
+
+    scale.real = static_cast<float>( (max.real - min.real) / width );
+    scale.imaginary = static_cast<float>( (max.imaginary - min.imaginary) / height );
+
+    //compute the image
+    sTime = GetCurrentMicroSecTime();
 
     for( row = 0; row < image.size( ); row++ )
     {
         for( col = 0; col < image[ row ].size( ); col++ )
         {
-            
+            cNum.real = min.real + ( static_cast<float>(col) * scale.real );
+            cNum.imaginary = min.imaginary + ( static_cast<float>(row) * scale.imaginary );
+            image[row][col] = static_cast<unsigned char>( mb::PixelGenerator( cNum ) );
+            std::cout<<mb::PixelGenerator( cNum )<<std::endl;
         }
     }
     
+    eTime = GetCurrentMicroSecTime();
+
+    std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
+    std::cout<<image[0].size()<<"x"<<image.size()<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
+
+    pim_write_black_and_white(saveName.c_str(), width, height, &image[0][0]);
 
     return 0;
 }
