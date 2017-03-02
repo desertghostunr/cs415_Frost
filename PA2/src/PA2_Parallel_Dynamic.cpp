@@ -1,14 +1,14 @@
 /**************************************************************
 
-@file PA2_Sequential.cpp
+@file PA2_Parallel_Dynamic.cpp
 
-@brief the code for the sequential PA2 program in cs415
+@brief the code for the  PA2 Dynamic Parallel program in cs415
 
-@description Calculates a Mandelbrot sequentially
+@description Calculates a Mandelbrot in parallel
 
 @author Andrew Frost
 
-@version 1.00 ( 02/26/2017 )
+@version 1.00 ( 03/02/2017 )
 
 @note None
 
@@ -23,6 +23,7 @@
 #include <string>
 #include "PIMFuncs.h"
 #include "Mandelbrot.h"
+#include "mpi.h"
 
 //free function prototypes ///////////////////////////////////
 unsigned long long GetCurrentMicroSecTime( );
@@ -40,14 +41,20 @@ int main( int argc, char *argv[ ] )
     std::string saveName;
     mb::ComplexNumber cNum, min, max, scale;
 
+    int numberOfTasks, taskID;
+
+    MPI_Init( &argc, &argv );
+    MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
+    MPI_Comm_rank( MPI_COMM_WORLD, &taskID );
+
     //cmd line params
     if( argc < 4 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
-        std::cout << "./PA2_Sequential [number of columns] [number of rows] [file path name]" <<std::endl;
+        std::cout << "srun [MPI PARAMS] PA2_Parallel_Dynamic [number of columns] [number of rows] [file path name]" <<std::endl;
         return -1;
     }
-    
+
     strStream.str( argv[ 1 ] );
     strStream >> width;
 
@@ -91,7 +98,7 @@ int main( int argc, char *argv[ ] )
             image[ width * row + col ] = static_cast<unsigned char>( mb::PixelGenerator( cNum ) );
         }
     }
-    
+
     eTime = GetCurrentMicroSecTime();
 
     std::cout<<"Image Dimensions\tTime(s)"<<std::endl;

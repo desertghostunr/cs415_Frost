@@ -38,7 +38,7 @@ int main( int argc, char *argv[ ] )
     int width = 0, height = 0;
     std::stringstream strStream;
     std::string saveName;
-    mb::ComplexNumber cNum, min, max, scale;
+    mb::ComplexNumber min, max, scale;
 
     //cmd line params
     if( argc < 4 )
@@ -47,7 +47,7 @@ int main( int argc, char *argv[ ] )
         std::cout << "./PA2_Sequential [number of columns] [number of rows] [file path name]" <<std::endl;
         return -1;
     }
-    
+
     strStream.str( argv[ 1 ] );
     strStream >> width;
 
@@ -86,12 +86,10 @@ int main( int argc, char *argv[ ] )
     {
         for( col = 0; col < width; col++ )
         {
-            cNum.real = min.real + ( static_cast<float>(col) * scale.real );
-            cNum.imaginary = min.imaginary + ( static_cast<float>(row) * scale.imaginary );
-            image[ width * row + col ] = static_cast<unsigned char>( mb::PixelGenerator( cNum ) );
+            mb::CalculatePixelAt( col, row, width, min, scale, image );
         }
     }
-    
+
     eTime = GetCurrentMicroSecTime();
 
     std::cout<<"Image Dimensions\tTime(s)"<<std::endl;

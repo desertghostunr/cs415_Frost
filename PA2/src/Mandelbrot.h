@@ -5,7 +5,7 @@
 @brief the code to create a Mandelbrot
 
 @description code to calculate a mandelbrot based on the
-             implementation in Parallel Programming 2nd Edition 
+             implementation in Parallel Programming 2nd Edition
              by Barry Wilkinson and Michael Allen
 
 @author Andrew Frost
@@ -23,7 +23,7 @@
 // header files //////////////////////////////////////////////
 
 #include <iostream>
-
+#include <vector>
 // namespace definition ///////////////////////////////////////////
 
 namespace mb
@@ -35,10 +35,13 @@ namespace mb
         float imaginary;
     };
 
-    // free function prototypes //////////////////////////////////       
+    // free function prototypes //////////////////////////////////
 
     int PixelGenerator( const ComplexNumber & complex );
-    
+
+    void CalculatePixelAt( int col, int row, int width,
+                          const ComplexNumber & min, const ComplexNumber & scale,
+                          std::vector<unsigned char> & image );
 
 }
 

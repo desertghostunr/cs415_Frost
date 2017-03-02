@@ -1,6 +1,6 @@
 #!/bin/bash
-#SBATCH -n 2
+#SBATCH -n 1
 #SBATCH --mem=2048
-#SBATCH --time=00:00:59
+#SBATCH --time=00:10:00
 
-srun PA1 1 30
+./PA2_Sequential 512 512 sequential.pgm

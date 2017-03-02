@@ -1,4 +1,4 @@
-CC=g++ #mpic++
+CC=mpic++
 CXXFLAGS=-Wall
 LIBS=-lpmi
 
@@ -11,16 +11,16 @@ ifeq "$(wildcard $(SRCDIR) )" ""
 	SRCDIR = src
 endif
 
-all: S PS PD
+all: S PD
 
 S: $(S_OBJ_FILES)
 	$(CC) $(CXXFLAGS) -o PA2_Sequential $(S_OBJ_FILES) #$(LIBS)
 
 PS: $(P_S_OBJ_FILES)
-	$(CC) $(CXXFLAGS) -o PA2_Parallel_Static $(P_S_OBJ_FILES) #$(LIBS)
+	$(CC) $(CXXFLAGS) -o PA2_Parallel_Static $(P_S_OBJ_FILES) $(LIBS)
 
 PD: $(P_D_OBJ_FILES)
-	$(CC) $(CXXFLAGS) -o PA2_Parallel_Dynamic $(P_D_OBJ_FILES) #$(LIBS)
+	$(CC) $(CXXFLAGS) -o PA2_Parallel_Dynamic $(P_D_OBJ_FILES) $(LIBS)
 
 PA2_Sequential.o: $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.cpp
@@ -38,4 +38,4 @@ PIMFuncs.o: $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PIMFuncs.cpp
 
 clean:
-	\rm *.o PA2_Sequential PA2_Parallel_Dynamic PA2_Parallel_Static
+	\rm *.o PA2_Sequential PA2_Parallel_Dynamic #PA2_Parallel_Static
