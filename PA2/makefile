@@ -11,7 +11,7 @@ ifeq "$(wildcard $(SRCDIR) )" ""
 	SRCDIR = src
 endif
 
-all: S PD
+all: S PD PS
 
 S: $(S_OBJ_FILES)
 	$(CC) $(CXXFLAGS) -o PA2_Sequential $(S_OBJ_FILES) #$(LIBS)

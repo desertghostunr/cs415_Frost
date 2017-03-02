@@ -30,7 +30,6 @@ int mb::CalculatePixelAt
 (
     int col,
     int row,
-    int width,
     const ComplexNumber & min,
     const ComplexNumber & scale
 )

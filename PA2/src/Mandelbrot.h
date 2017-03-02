@@ -39,8 +39,8 @@ namespace mb
 
     int PixelGenerator( const ComplexNumber & complex );
 
-    int CalculatePixelAt( int col, int row, int width,
-                                    const ComplexNumber & min, const ComplexNumber & scale );
+    int CalculatePixelAt( int col, int row,
+                          const ComplexNumber & min, const ComplexNumber & scale );
 
 }
 

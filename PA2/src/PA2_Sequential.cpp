@@ -86,7 +86,7 @@ int main( int argc, char *argv[ ] )
     {
         for( col = 0; col < width; col++ )
         {
-            image[ row * width + col ] = static_cast<unsigned char>( mb::CalculatePixelAt( col, row, width, min, scale ) );
+            image[ row * width + col ] = static_cast<unsigned char>( mb::CalculatePixelAt( col, row, min, scale ) );
         }
     }
 
