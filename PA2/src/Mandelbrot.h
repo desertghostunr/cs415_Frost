@@ -39,9 +39,8 @@ namespace mb
 
     int PixelGenerator( const ComplexNumber & complex );
 
-    void CalculatePixelAt( int col, int row, int width,
-                          const ComplexNumber & min, const ComplexNumber & scale,
-                          std::vector<unsigned char> & image );
+    int CalculatePixelAt( int col, int row, int width,
+                                    const ComplexNumber & min, const ComplexNumber & scale );
 
 }
 

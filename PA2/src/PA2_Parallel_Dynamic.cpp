@@ -30,6 +30,8 @@ unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
 
+bool AllTrue( const std::vector<bool> & tst );
+
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
@@ -40,7 +42,7 @@ int main( int argc, char *argv[ ] )
     std::stringstream strStream;
     std::string saveName;
     mb::ComplexNumber cNum, min, max, scale;
-
+    std::vector<bool> rowReceived;
     int numberOfTasks, taskID;
 
     MPI_Init( &argc, &argv );
@@ -77,6 +79,9 @@ int main( int argc, char *argv[ ] )
     //alloc image
     image.resize( width * height );
 
+    //alloc row management vector
+    rowReceived.resize( height, false );
+
     //calculate min and max vals
     max.real = 2;
     max.imaginary = 2;
@@ -89,16 +94,14 @@ int main( int argc, char *argv[ ] )
     //compute the image
     sTime = GetCurrentMicroSecTime();
 
-    for( row = 0; row < height; row++ )
+    if( taskID == 0 )
     {
-        for( col = 0; col < width; col++ )
-        {
-            cNum.real = min.real + ( static_cast<float>(col) * scale.real );
-            cNum.imaginary = min.imaginary + ( static_cast<float>(row) * scale.imaginary );
-            image[ width * row + col ] = static_cast<unsigned char>( mb::PixelGenerator( cNum ) );
-        }
+         
     }
-
+    else
+    {
+         
+    }
     eTime = GetCurrentMicroSecTime();
 
     std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
@@ -130,4 +133,19 @@ unsigned long long GetCurrentMicroSecTime( )
 double ConvertTimeToSeconds( unsigned long long usTime )
 {
     return ( double ) usTime / 1000000.0;
+}
+
+bool AllTrue( const std::vector<bool> & tst )
+{
+    size_t index;
+
+    for( index = 0; index < tst.size( ); index++ )
+    {
+         if( !tst[ index ] )
+         {
+              return false;
+         }
+    }
+
+    return true;
 }

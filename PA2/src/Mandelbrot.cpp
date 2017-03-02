@@ -26,18 +26,17 @@ int mb::PixelGenerator( const ComplexNumber & complex )
     return itCount;
 }
 
-void mb::CalculatePixelAt
+int mb::CalculatePixelAt
 (
     int col,
     int row,
     int width,
     const ComplexNumber & min,
-    const ComplexNumber & scale,
-    std::vector<unsigned char> & image
+    const ComplexNumber & scale
 )
 {
     ComplexNumber cNum;
     cNum.real = min.real + ( static_cast<float>(col) * scale.real );
     cNum.imaginary = min.imaginary + ( static_cast<float>(row) * scale.imaginary );
-    image[ width * row + col ] = static_cast<unsigned char>( mb::PixelGenerator( cNum ) );
+    return ( mb::PixelGenerator( cNum ) );
 }
