@@ -2,7 +2,7 @@
 
 @file PA2_Parallel_Dynamic.cpp
 
-@brief the code for the  PA2 Dynamic Parallel program in cs415
+@brief the code for the PA2 Dynamic Parallel program in cs415
 
 @description Calculates a Mandelbrot in parallel
 
@@ -26,24 +26,32 @@
 #include "mpi.h"
 
 //free function prototypes ///////////////////////////////////
+bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height );
+
 unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
 
 bool AllTrue( const std::vector<bool> & tst );
 
+
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
-    int row, col;
-    int width = 0, height = 0;
+    std::vector<int> tmp;
+    int row, col, index, messageAvailable;
+    int width = 0, height = 0, rowReceivedCount = 0, currentRowToSend;
     std::stringstream strStream;
     std::string saveName;
-    mb::ComplexNumber cNum, min, max, scale;
+    mb::ComplexNumber min, max, scale;
+
     std::vector<bool> rowReceived;
+
     int numberOfTasks, taskID;
+
+    MPI_Status status;
 
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
@@ -76,12 +84,6 @@ int main( int argc, char *argv[ ] )
 
     saveName = argv[ 3 ];
 
-    //alloc image
-    image.resize( width * height );
-
-    //alloc row management vector
-    rowReceived.resize( height, false );
-
     //calculate min and max vals
     max.real = 2;
     max.imaginary = 2;
@@ -92,30 +94,147 @@ int main( int argc, char *argv[ ] )
     scale.imaginary = (max.imaginary - min.imaginary) / static_cast<float>( height );
 
     //compute the image
-    sTime = GetCurrentMicroSecTime();
-
     if( taskID == 0 )
     {
-         
+        //alloc image
+        image.resize( width * height );
+        tmp.resize( width + 1 );
+        rowReceived.resize( height, false );
+        rowReceivedCount = currentRowToSend = 0;
+
+        sTime = GetCurrentMicroSecTime( );
+
+        //initial sending of rows
+        for( index = 1; index < std::min( numberOfTasks, height ); index++ )
+        {
+            MPI_Send( index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+        }
+
+        row = 0;
+        col = 0;
+
+        //poll for completed rows
+        while( rowReceivedCount < height )
+        {
+            //check for row 
+            MPI_IProbe( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &messageAvailable, &status );
+
+            if( messageAvailable )
+            {
+                //get the row and copy it
+                MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+                CopyRow( tmp, image, width, height );
+
+                rowReceived[ tmp[ tmp.size() - 1 ] ] = true;
+                rowReceivedCount++;
+
+                if( rowReceivedCount >= height  )
+                {
+                    break;
+                }
+
+                //find the next row to send
+                while( !rowReceived[ currentRowToSend ] )
+                {
+                    currentRowToSend = ( currentRowToSend + 1 ) % height;
+                }
+
+                //make sure task 0 isn't working on the row to send
+                if( currentRowToSend != row )
+                {
+                    MPI_Send( currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
+                }
+            }
+
+            //work on current row
+            if( col >= width )
+            {
+                rowReceived[ row ] = true;
+                rowReceivedCount++;
+
+                col = 0;
+
+                if( rowReceivedCount >= height  )
+                {
+                    break;
+                }
+
+                while( !rowReceived[ row ] )
+                {
+                    row = ( row + 1 ) % height;
+                }
+
+                //calculate offset
+                row *= width;
+            }
+            else
+            {
+                image[ row + col ] = CalculatePixelAt( col, row, min, scale );
+            }
+            
+        }
+
+        eTime = GetCurrentMicroSecTime( );
+
+        std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
+        std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
+
+        if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
+        {
+            std::cout<<"Failure saving image."<<std::endl;
+        }
     }
     else
     {
-         
-    }
-    eTime = GetCurrentMicroSecTime();
+        //alloc image
+        tmp.resize( width + 1 );
 
-    std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
-    std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
+        MPI_Recv( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status );
 
-    if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
-    {
-        std::cout<<"Failure saving image."<<std::endl;
+        for( col = 0; col < width; col++ )
+        {
+            tmp[ col ] = CalculatePixelAt( col, row, min, scale );
+        }
+
+        tmp[ tmp.size( ) - 1 ] = row;
+        
+        MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
     }
+
+    MPI_Finalize( );
+    
 
     return 0;
 }
 
 // free function implementation //////////////////////////////////
+
+bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height )
+{
+    int index;
+    int row;
+
+    if( src.empty( ) )
+    {
+        return false;
+    }
+
+    row = src[ src.size( ) - 1 ];
+
+    if( row < 0 || row > height )
+    {
+        return false;
+    }
+
+    row *= width;
+
+    for( index = 0; index < width; index++ )
+    {
+        dst[ row + index ] = static_cast<unsigned char>( src[ index ] );
+    }
+
+    return true;
+}
 
 unsigned long long GetCurrentMicroSecTime( )
 {
