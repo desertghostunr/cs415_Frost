@@ -20,10 +20,15 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <algorithm>
 #include <string>
 #include "PIMFuncs.h"
 #include "Mandelbrot.h"
 #include "mpi.h"
+
+// pre-compiler directives ///////////////////////////////////
+
+#define KILL_SWITCH -1
 
 //free function prototypes ///////////////////////////////////
 bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height );
@@ -31,9 +36,6 @@ bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, in
 unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
-
-bool AllTrue( const std::vector<bool> & tst );
-
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -107,17 +109,17 @@ int main( int argc, char *argv[ ] )
         //initial sending of rows
         for( index = 1; index < std::min( numberOfTasks, height ); index++ )
         {
-            MPI_Send( index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+            MPI_Send( &index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
         }
 
         row = 0;
         col = 0;
 
         //poll for completed rows
-        while( rowReceivedCount < height )
+        while( true )
         {
-            //check for row 
-            MPI_IProbe( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &messageAvailable, &status );
+            //check for row
+            MPI_Iprobe( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &messageAvailable, &status );
 
             if( messageAvailable )
             {
@@ -142,7 +144,7 @@ int main( int argc, char *argv[ ] )
                 //make sure task 0 isn't working on the row to send
                 if( currentRowToSend != row )
                 {
-                    MPI_Send( currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
+                    MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
                 }
             }
 
@@ -170,11 +172,21 @@ int main( int argc, char *argv[ ] )
             else
             {
                 image[ row + col ] = CalculatePixelAt( col, row, min, scale );
+                col++;
             }
-            
+
         }
 
         eTime = GetCurrentMicroSecTime( );
+
+        //finishing up
+
+        currentRowToSend = KILL_SWITCH;
+
+        for( index = 1; index < numberOfTasks; index++ )
+        {
+            MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+        }
 
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
@@ -189,20 +201,28 @@ int main( int argc, char *argv[ ] )
         //alloc image
         tmp.resize( width + 1 );
 
-        MPI_Recv( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status );
-
-        for( col = 0; col < width; col++ )
+        while( true )
         {
-            tmp[ col ] = CalculatePixelAt( col, row, min, scale );
-        }
+            MPI_Recv( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, &status );
 
-        tmp[ tmp.size( ) - 1 ] = row;
-        
-        MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+            if( row == KILL_SWITCH )
+            {
+                break;
+            }
+
+            for( col = 0; col < width; col++ )
+            {
+                tmp[ col ] = CalculatePixelAt( col, row, min, scale );
+            }
+
+            tmp[ tmp.size( ) - 1 ] = row;
+
+            MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+        }
     }
 
     MPI_Finalize( );
-    
+
 
     return 0;
 }
@@ -254,17 +274,3 @@ double ConvertTimeToSeconds( unsigned long long usTime )
     return ( double ) usTime / 1000000.0;
 }
 
-bool AllTrue( const std::vector<bool> & tst )
-{
-    size_t index;
-
-    for( index = 0; index < tst.size( ); index++ )
-    {
-         if( !tst[ index ] )
-         {
-              return false;
-         }
-    }
-
-    return true;
-}
