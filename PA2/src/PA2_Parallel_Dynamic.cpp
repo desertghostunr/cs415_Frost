@@ -43,7 +43,7 @@ int main( int argc, char *argv[ ] )
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
     std::vector<int> tmp;
-    int row, col, index, messageAvailable;
+    int row, col, index, messageAvailable = 0;
     int width = 0, height = 0, rowReceivedCount = 0, currentRowToSend;
     std::stringstream strStream;
     std::string saveName;
@@ -166,12 +166,10 @@ int main( int argc, char *argv[ ] )
                     row = ( row + 1 ) % height;
                 }
 
-                //calculate offset
-                row *= width;
             }
             else
             {
-                image[ row + col ] = CalculatePixelAt( col, row, min, scale );
+                image[ row * width + col ] = static_cast<unsigned char> ( CalculatePixelAt( col, row, min, scale ) );
                 col++;
             }
 
@@ -181,13 +179,6 @@ int main( int argc, char *argv[ ] )
 
         //finishing up
 
-        currentRowToSend = KILL_SWITCH;
-
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
-        }
-
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
@@ -195,6 +186,13 @@ int main( int argc, char *argv[ ] )
         {
             std::cout<<"Failure saving image."<<std::endl;
         }
+
+        currentRowToSend = KILL_SWITCH;
+
+        for( index = 1; index < numberOfTasks; index++ )
+        {
+            MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+        }        
     }
     else
     {
