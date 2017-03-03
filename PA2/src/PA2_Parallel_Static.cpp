@@ -130,8 +130,6 @@ int main( int argc, char *argv[ ] )
 
         row = (taskID - 1) * rowsPerTask;
 
-        tmp[ tmp.size( ) - 1 ] = row;
-
         for( ; row < std::min( height, tmp[ tmp.size( ) - 1 ] + rowsPerTask ); row++ )
         {
             for( col = 0; col < width; col++ )
@@ -139,7 +137,9 @@ int main( int argc, char *argv[ ] )
                 tmp[ col ] = CalculatePixelAt( col, row, min, scale );
             }
 
-//            std::cout<<"Sending from "<<taskID<<std::endl;
+            tmp[ tmp.size( ) - 1 ] = row;
+
+//            std::cout<<"Sending from "<<taskID<<" of row "<<tmp[ tmp.size( ) - 1 ]<<" with a height of "<<height<<" with a row of "<<width<<"with so many rows: "<<rowsPerTask<<std::endl;
             MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
         }
     }
