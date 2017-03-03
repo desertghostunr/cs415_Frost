@@ -112,6 +112,8 @@ int main( int argc, char *argv[ ] )
             MPI_Send( &index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
         }
 
+        currentRowToSend = std::min( height, index );
+
         row = 0;
         col = 0;
 
@@ -125,24 +127,39 @@ int main( int argc, char *argv[ ] )
             {
                 //get the row and copy it
                 MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
-                CopyRow( tmp, image, width, height );
 
-                rowReceived[ tmp[ tmp.size() - 1 ] ] = true;
-                rowReceivedCount++;
+
+                if( !rowReceived[ tmp[ tmp.size( ) - 1 ] ] )
+                {
+                    CopyRow( tmp, image, width, height );
+
+                    rowReceived[ tmp[ tmp.size() - 1 ] ] = true;
+                    rowReceivedCount++;
+
+                }
 
                 if( rowReceivedCount >= height  )
                 {
                     break;
                 }
 
+                index = 0;
+
                 //find the next row to send
-                while( !rowReceived[ currentRowToSend ] )
+                while( rowReceived[ currentRowToSend ] && index < height )
                 {
+                    index++;
                     currentRowToSend = ( currentRowToSend + 1 ) % height;
+
+                    //make sure task 0 isn't working on the row to send
+                    if( currentRowToSend == row )
+                    {
+                        currentRowToSend = ( currentRowToSend + 1 ) % height;
+                    }
                 }
 
                 //make sure task 0 isn't working on the row to send
-                if( currentRowToSend != row )
+                if( !rowReceived[ currentRowToSend ] )
                 {
                     MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
                 }
@@ -151,8 +168,13 @@ int main( int argc, char *argv[ ] )
             //work on current row
             if( col >= width )
             {
-                rowReceived[ row ] = true;
-                rowReceivedCount++;
+
+                if( !rowReceived[ row ] )
+                {
+                    rowReceived[ row ] = true;
+                    rowReceivedCount++;
+
+                }
 
                 col = 0;
 
@@ -161,8 +183,11 @@ int main( int argc, char *argv[ ] )
                     break;
                 }
 
-                while( !rowReceived[ row ] )
+                index = 0;
+
+                while( rowReceived[ row ] && index < height )
                 {
+                    index++;
                     row = ( row + 1 ) % height;
                 }
 
@@ -178,7 +203,7 @@ int main( int argc, char *argv[ ] )
         eTime = GetCurrentMicroSecTime( );
 
         //finishing up
-
+        std::cout<<"Parallel Dynamic"<<std::endl;
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
@@ -192,7 +217,7 @@ int main( int argc, char *argv[ ] )
         for( index = 1; index < numberOfTasks; index++ )
         {
             MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
-        }        
+        }
     }
     else
     {

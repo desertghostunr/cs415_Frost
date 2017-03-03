@@ -115,6 +115,9 @@ int main( int argc, char *argv[ ] )
         }
 
         eTime = GetCurrentMicroSecTime( );
+
+        std::cout<<"Parallel Static"<<std::endl;
+
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
