@@ -2,7 +2,7 @@
 
 @file PA2_Parallel_Static.cpp
 
-@brief the code for the  PA2 Dynamic Static program in cs415
+@brief the code for the PA2 Dynamic Static program in cs415
 
 @description Calculates a Mandelbrot in parallel
 
@@ -132,7 +132,7 @@ int main( int argc, char *argv[ ] )
 
         tmp[ tmp.size( ) - 1 ] = row;
 
-        for( row = 0; row < std::min( height, tmp[ tmp.size( ) - 1 ] + rowsPerTask ); row++ )
+        for( ; row < std::min( height, tmp[ tmp.size( ) - 1 ] + rowsPerTask ); row++ )
         {
             for( col = 0; col < width; col++ )
             {
