@@ -110,7 +110,7 @@ int main( int argc, char *argv[ ] )
         {
 
             MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
-            std::cout<< "Received from "<<status.MPI_SOURCE<<std::endl;
+//            std::cout<< "Received from "<<status.MPI_SOURCE<<std::endl;
             CopyRow( tmp, image, width, height );
         }
 
@@ -118,6 +118,10 @@ int main( int argc, char *argv[ ] )
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
+        if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
+        {
+            std::cout<<"Failure saving image."<<std::endl;
+        }
     }
     else
     {
@@ -128,23 +132,17 @@ int main( int argc, char *argv[ ] )
 
         tmp[ tmp.size( ) - 1 ] = row;
 
-        for( row = 0; row < std::min( height, row + rowsPerTask ); row++ )
+        for( row = 0; row < std::min( height, tmp[ tmp.size( ) - 1 ] + rowsPerTask ); row++ )
         {
             for( col = 0; col < width; col++ )
             {
                 tmp[ col ] = CalculatePixelAt( col, row, min, scale );
             }
 
-            std::cout<<"Sending from "<<taskID<<std::endl;
+//            std::cout<<"Sending from "<<taskID<<std::endl;
             MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
         }
     }
-
-    if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
-    {
-        std::cout<<"Failure saving image."<<std::endl;
-    }
-
 
     MPI_Finalize( );
 
