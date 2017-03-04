@@ -3,4 +3,4 @@
 #SBATCH --mem=2048
 #SBATCH --time=00:10:00
 
-./PA2_Sequential 512 512 sequential.pgm
+./PA2_Sequential 16384 16384 sequential.pgm

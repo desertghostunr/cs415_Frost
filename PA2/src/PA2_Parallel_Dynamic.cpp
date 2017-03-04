@@ -52,7 +52,7 @@ int main( int argc, char *argv[ ] )
     std::vector<bool> rowReceived;
 
     int numberOfTasks, taskID;
-
+    int activeTasks;
     MPI_Status status;
 
     MPI_Init( &argc, &argv );
@@ -104,12 +104,15 @@ int main( int argc, char *argv[ ] )
         rowReceived.resize( height, false );
         rowReceivedCount = currentRowToSend = 0;
 
+        activeTasks = 0;
+
         sTime = GetCurrentMicroSecTime( );
 
         //initial sending of rows
         for( index = 1; index < std::min( numberOfTasks, height ); index++ )
         {
             MPI_Send( &index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+            activeTasks++;
         }
 
         currentRowToSend = std::min( height, index );
@@ -127,7 +130,7 @@ int main( int argc, char *argv[ ] )
             {
                 //get the row and copy it
                 MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
-
+                activeTasks--;
 
                 if( !rowReceived[ tmp[ tmp.size( ) - 1 ] ] )
                 {
@@ -162,6 +165,7 @@ int main( int argc, char *argv[ ] )
                 if( !rowReceived[ currentRowToSend ] )
                 {
                     MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
+                    activeTasks++;
                 }
             }
 
@@ -214,9 +218,23 @@ int main( int argc, char *argv[ ] )
 
         currentRowToSend = KILL_SWITCH;
 
+        // get slow nodes rows
+        for( index = 0; index < activeTasks; index++ )
+        {
+             MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+        }
+
+        activeTasks = 0;
+
+        // terminate remaining tasks
         for( index = 1; index < numberOfTasks; index++ )
         {
             MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
+        }
+
+        for( index = 1; index < numberOfTasks; index++ )
+        {
+            MPI_Recv( &row, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
         }
     }
     else
@@ -230,11 +248,14 @@ int main( int argc, char *argv[ ] )
 
             if( row == KILL_SWITCH )
             {
+                MPI_Send( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+
                 break;
             }
 
             for( col = 0; col < width; col++ )
             {
+
                 tmp[ col ] = CalculatePixelAt( col, row, min, scale );
             }
 
