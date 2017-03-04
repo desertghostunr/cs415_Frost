@@ -130,7 +130,9 @@ int main( int argc, char *argv[ ] )
 
         row = (taskID - 1) * rowsPerTask;
 
-        for( ; row < std::min( height, tmp[ tmp.size( ) - 1 ] + rowsPerTask ); row++ )
+        tRow = row;
+
+        for( ; row < std::min( height, tRow + rowsPerTask ); row++ )
         {
             for( col = 0; col < width; col++ )
             {

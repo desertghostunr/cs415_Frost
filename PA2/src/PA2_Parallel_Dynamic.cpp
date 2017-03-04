@@ -31,7 +31,6 @@
 #define KILL_SWITCH -1
 
 //free function prototypes ///////////////////////////////////
-bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height );
 
 unsigned long long GetCurrentMicroSecTime( );
 
@@ -124,7 +123,7 @@ int main( int argc, char *argv[ ] )
         while( true )
         {
             //check for row
-            MPI_Iprobe( MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &messageAvailable, &status );
+            MPI_Iprobe( MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &messageAvailable, &status );
 
             if( messageAvailable )
             {
@@ -133,9 +132,9 @@ int main( int argc, char *argv[ ] )
                 MPI_Recv( &image[ tRow * width ], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
                 activeTasks--;
 
-                if( !rowReceived[ tmp[ tmp.size( ) - 1 ] ] )
+                if( !rowReceived[ tRow ] )
                 {
-                    rowReceived[ tmp[ tmp.size() - 1 ] ] = true;
+                    rowReceived[ tRow ] = true;
                     rowReceivedCount++;
                 }
 
@@ -147,16 +146,16 @@ int main( int argc, char *argv[ ] )
                 index = 0;
 
                 //find the next row to send
-                while( rowReceived[ currentRowToSend ] && index < height )
+                while( index < height )
                 {
                     index++;
-                    currentRowToSend = ( currentRowToSend + 1 ) % height;
 
-                    //make sure task 0 isn't working on the row to send
-                    if( currentRowToSend == row )
+                    if( !rowReceived[ currentRowToSend ] )
                     {
-                        currentRowToSend = ( currentRowToSend + 1 ) % height;
+                        break;
                     }
+
+                    currentRowToSend = ( currentRowToSend + 1 ) % height;
                 }
 
                 //make sure task 0 isn't working on the row to send
@@ -165,39 +164,26 @@ int main( int argc, char *argv[ ] )
                     MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
                     activeTasks++;
                 }
-            }
 
-            //work on current row
-            if( col >= width )
+            } //work on current row
+            else if( !rowReceived[ row ] && col < width )
             {
-
+                image[ row * width + col ] = static_cast<unsigned char> ( CalculatePixelAt( col, row, min, scale ) );
+                col++;
+            }
+            else
+            {
                 if( !rowReceived[ row ] )
                 {
                     rowReceived[ row ] = true;
                     rowReceivedCount++;
-
                 }
 
-                col = 0;
-
-                if( rowReceivedCount >= height  )
+                if( rowReceivedCount >= height )
                 {
                     break;
                 }
 
-                index = 0;
-
-                while( rowReceived[ row ] && index < height )
-                {
-                    index++;
-                    row = ( row + 1 ) % height;
-                }
-
-            }
-            else
-            {
-                image[ row * width + col ] = static_cast<unsigned char> ( CalculatePixelAt( col, row, min, scale ) );
-                col++;
             }
 
         }
@@ -270,33 +256,6 @@ int main( int argc, char *argv[ ] )
 }
 
 // free function implementation //////////////////////////////////
-
-bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height )
-{
-    int index;
-    int row;
-
-    if( src.empty( ) )
-    {
-        return false;
-    }
-
-    row = src[ src.size( ) - 1 ];
-
-    if( row < 0 || row > height )
-    {
-        return false;
-    }
-
-    row *= width;
-
-    for( index = 0; index < width; index++ )
-    {
-        dst[ row + index ] = static_cast<unsigned char>( src[ index ] );
-    }
-
-    return true;
-}
 
 unsigned long long GetCurrentMicroSecTime( )
 {

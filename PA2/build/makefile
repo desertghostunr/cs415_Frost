@@ -1,5 +1,5 @@
 CC=mpic++
-CXXFLAGS=-Wall
+CXXFLAGS= -O2 -Wall
 LIBS=-lpmi
 
 SRCDIR = ../src
