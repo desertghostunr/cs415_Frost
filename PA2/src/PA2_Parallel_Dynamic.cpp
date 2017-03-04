@@ -42,8 +42,8 @@ int main( int argc, char *argv[ ] )
 {
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
-    std::vector<int> tmp;
-    int row, col, index, messageAvailable = 0;
+    std::vector<unsigned char> tmp;
+    int row, col, index, messageAvailable = 0, tRow;
     int width = 0, height = 0, rowReceivedCount = 0, currentRowToSend;
     std::stringstream strStream;
     std::string saveName;
@@ -100,7 +100,7 @@ int main( int argc, char *argv[ ] )
     {
         //alloc image
         image.resize( width * height );
-        tmp.resize( width + 1 );
+        tmp.resize( width );
         rowReceived.resize( height, false );
         rowReceivedCount = currentRowToSend = 0;
 
@@ -129,16 +129,14 @@ int main( int argc, char *argv[ ] )
             if( messageAvailable )
             {
                 //get the row and copy it
-                MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+                MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
+                MPI_Recv( &image[ tRow * width ], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
                 activeTasks--;
 
                 if( !rowReceived[ tmp[ tmp.size( ) - 1 ] ] )
                 {
-                    CopyRow( tmp, image, width, height );
-
                     rowReceived[ tmp[ tmp.size() - 1 ] ] = true;
                     rowReceivedCount++;
-
                 }
 
                 if( rowReceivedCount >= height  )
@@ -221,7 +219,8 @@ int main( int argc, char *argv[ ] )
         // get slow nodes rows
         for( index = 0; index < activeTasks; index++ )
         {
-             MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+             MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
+             MPI_Recv( &tmp[0], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
         }
 
         activeTasks = 0;
@@ -240,7 +239,7 @@ int main( int argc, char *argv[ ] )
     else
     {
         //alloc image
-        tmp.resize( width + 1 );
+        tmp.resize( width );
 
         while( true )
         {
@@ -259,9 +258,8 @@ int main( int argc, char *argv[ ] )
                 tmp[ col ] = CalculatePixelAt( col, row, min, scale );
             }
 
-            tmp[ tmp.size( ) - 1 ] = row;
-
-            MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+            MPI_Send( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+            MPI_Send( &tmp[ 0 ], width, MPI_UNSIGNED_CHAR, 0, 1, MPI_COMM_WORLD );
         }
     }
 

@@ -39,8 +39,8 @@ int main( int argc, char *argv[ ] )
 {
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
-    std::vector<int> tmp;
-    int row, col, index, rowsPerTask;
+    std::vector<unsigned char> tmp;
+    int row, col, index, rowsPerTask, tRow;
     int width = 0, height = 0;
     std::stringstream strStream;
     std::string saveName;
@@ -103,15 +103,12 @@ int main( int argc, char *argv[ ] )
     {
         //alloc image
         image.resize( width * height );
-        tmp.resize( width + 1 );
         sTime = GetCurrentMicroSecTime( );
 
         for( index = 0; index < height; index++ )
         {
-
-            MPI_Recv( &tmp[0], width + 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
-//            std::cout<< "Received from "<<status.MPI_SOURCE<<std::endl;
-            CopyRow( tmp, image, width, height );
+            MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
+            MPI_Recv( &image[ tRow * width ] , width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
         }
 
         eTime = GetCurrentMicroSecTime( );
@@ -129,7 +126,7 @@ int main( int argc, char *argv[ ] )
     else
     {
         //alloc image
-        tmp.resize( width + 1 );
+        tmp.resize( width );
 
         row = (taskID - 1) * rowsPerTask;
 
@@ -137,13 +134,11 @@ int main( int argc, char *argv[ ] )
         {
             for( col = 0; col < width; col++ )
             {
-                tmp[ col ] = CalculatePixelAt( col, row, min, scale );
+                tmp[ col ] = static_cast<unsigned char>( CalculatePixelAt( col, row, min, scale ) );
             }
 
-            tmp[ tmp.size( ) - 1 ] = row;
-
-//            std::cout<<"Sending from "<<taskID<<" of row "<<tmp[ tmp.size( ) - 1 ]<<" with a height of "<<height<<" with a row of "<<width<<"with so many rows: "<<rowsPerTask<<std::endl;
-            MPI_Send( &tmp[ 0 ], width + 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+            MPI_Send( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
+            MPI_Send( &tmp[0], width, MPI_UNSIGNED_CHAR, 0, 1, MPI_COMM_WORLD );
         }
     }
 
