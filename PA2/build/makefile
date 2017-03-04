@@ -38,4 +38,4 @@ PIMFuncs.o: $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PIMFuncs.cpp
 
 clean:
-	\rm *.o PA2_Sequential PA2_Parallel_Dynamic #PA2_Parallel_Static
+	\rm *.o PA2_Sequential PA2_Parallel_Dynamic PA2_Parallel_Static
