@@ -28,7 +28,6 @@
 #include "mpi.h"
 
 //free function prototypes ///////////////////////////////////
-bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height );
 
 unsigned long long GetCurrentMicroSecTime( );
 
@@ -150,33 +149,6 @@ int main( int argc, char *argv[ ] )
 }
 
 // free function implementation //////////////////////////////////
-
-bool CopyRow( const std::vector<int> & src, std::vector<unsigned char> & dst, int width, int height )
-{
-    int index;
-    int row;
-
-    if( src.empty( ) )
-    {
-        return false;
-    }
-
-    row = src[ src.size( ) - 1 ];
-
-    if( row < 0 || row > height )
-    {
-        return false;
-    }
-
-    row *= width;
-
-    for( index = 0; index < width; index++ )
-    {
-        dst[ row + index ] = static_cast<unsigned char>( src[ index ] );
-    }
-
-    return true;
-}
 
 unsigned long long GetCurrentMicroSecTime( )
 {

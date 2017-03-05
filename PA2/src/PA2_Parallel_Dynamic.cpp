@@ -32,6 +32,9 @@
 
 //free function prototypes ///////////////////////////////////
 
+template< typename Type >
+bool RemoveAt( std::vector<Type> & data, int position );
+
 unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
@@ -42,16 +45,13 @@ int main( int argc, char *argv[ ] )
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
     std::vector<unsigned char> tmp;
-    int row, col, index, messageAvailable = 0, tRow;
+    int row, col, index, tRow;
     int width = 0, height = 0, rowReceivedCount = 0, currentRowToSend;
     std::stringstream strStream;
     std::string saveName;
     mb::ComplexNumber min, max, scale;
 
-    std::vector<bool> rowReceived;
-
     int numberOfTasks, taskID;
-    int activeTasks;
     MPI_Status status;
 
     MPI_Init( &argc, &argv );
@@ -99,93 +99,40 @@ int main( int argc, char *argv[ ] )
     {
         //alloc image
         image.resize( width * height );
-        tmp.resize( width );
-        rowReceived.resize( height, false );
         rowReceivedCount = currentRowToSend = 0;
-
-        activeTasks = 0;
 
         sTime = GetCurrentMicroSecTime( );
 
         //initial sending of rows
-        for( index = 1; index < std::min( numberOfTasks, height ); index++ )
+        for( index = 0; index < std::min( numberOfTasks, height ); index++ )
         {
-            MPI_Send( &index, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
-            activeTasks++;
+            MPI_Send( &index, 1, MPI_INT, index + 1, 0, MPI_COMM_WORLD );
         }
 
         currentRowToSend = std::min( height, index );
 
-        row = 0;
-        col = 0;
-
         //poll for completed rows
         while( true )
         {
-            //check for row
-            MPI_Iprobe( MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &messageAvailable, &status );
+            //get the row and copy it
+            MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
+            MPI_Recv( &image[ tRow * width ], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
 
-            if( messageAvailable )
+            //increment the number of rows received
+            rowReceivedCount++;
+
+            if( rowReceivedCount >= height )
             {
-                //get the row and copy it
-                MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
-                MPI_Recv( &image[ tRow * width ], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
-                activeTasks--;
-
-                if( !rowReceived[ tRow ] )
-                {
-                    rowReceived[ tRow ] = true;
-                    rowReceivedCount++;
-                }
-
-                if( rowReceivedCount >= height  )
-                {
-                    break;
-                }
-
-                index = 0;
-
-                //find the next row to send
-                while( index < height )
-                {
-                    index++;
-
-                    if( !rowReceived[ currentRowToSend ] )
-                    {
-                        break;
-                    }
-
-                    currentRowToSend = ( currentRowToSend + 1 ) % height;
-                }
-
-                //make sure task 0 isn't working on the row to send
-                if( !rowReceived[ currentRowToSend ] )
-                {
-                    MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
-                    activeTasks++;
-                }
-
-            } //work on current row
-            else if( !rowReceived[ row ] && col < width )
-            {
-                image[ row * width + col ] = static_cast<unsigned char> ( CalculatePixelAt( col, row, min, scale ) );
-                col++;
-            }
-            else
-            {
-                if( !rowReceived[ row ] )
-                {
-                    rowReceived[ row ] = true;
-                    rowReceivedCount++;
-                }
-
-                if( rowReceivedCount >= height )
-                {
-                    break;
-                }
-
+                break;
             }
 
+            //send next job if one is available
+            if( currentRowToSend < height )
+            {
+                MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
+
+                currentRowToSend++;
+            }
         }
 
         eTime = GetCurrentMicroSecTime( );
@@ -202,21 +149,13 @@ int main( int argc, char *argv[ ] )
 
         currentRowToSend = KILL_SWITCH;
 
-        // get slow nodes rows
-        for( index = 0; index < activeTasks; index++ )
-        {
-             MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
-             MPI_Recv( &tmp[0], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
-        }
-
-        activeTasks = 0;
-
         // terminate remaining tasks
         for( index = 1; index < numberOfTasks; index++ )
         {
             MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
         }
 
+        //wait for all tasks to terminate
         for( index = 1; index < numberOfTasks; index++ )
         {
             MPI_Recv( &row, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
