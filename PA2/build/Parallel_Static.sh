@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH -n 3
+#SBATCH -n 33
 #SBATCH --mem=2048
 #SBATCH --time=00:10:00
 
