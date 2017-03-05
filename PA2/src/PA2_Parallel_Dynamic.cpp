@@ -42,8 +42,8 @@ int main( int argc, char *argv[ ] )
     unsigned long long sTime, eTime;
     std::vector<unsigned char> image;
     std::vector<unsigned char> tmp;
-    int row, col, index, tRow;
-    int width = 0, height = 0, rowReceivedCount = 0, currentRowToSend;
+    int row, col, index, tRow, taskCount;
+    int width = 0, height = 0, currentRowToSend;
     std::stringstream strStream;
     std::string saveName;
     mb::ComplexNumber min, max, scale;
@@ -96,7 +96,7 @@ int main( int argc, char *argv[ ] )
     {
         //alloc image
         image.resize( width * height );
-        rowReceivedCount = currentRowToSend = 0;
+        taskCount = currentRowToSend = 0;
 
         sTime = GetCurrentMicroSecTime( );
 
@@ -104,6 +104,7 @@ int main( int argc, char *argv[ ] )
         for( index = 0; index < std::min( numberOfTasks - 1, height ); index++ )
         {
             MPI_Send( &index, 1, MPI_INT, index + 1, 0, MPI_COMM_WORLD );
+            taskCount++;
         }
 
         currentRowToSend = std::min( height, index );
@@ -115,13 +116,8 @@ int main( int argc, char *argv[ ] )
             MPI_Recv( &tRow, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &status );
             MPI_Recv( &image[ tRow * width ], width, MPI_UNSIGNED_CHAR, status.MPI_SOURCE, 1, MPI_COMM_WORLD, &status );
 
-            //increment the number of rows received
-            rowReceivedCount++;
-
-            if( rowReceivedCount >= height )
-            {
-                break;
-            }
+            //decrement the number of tasks running
+            taskCount--;
 
             //send next job if one is available
             if( currentRowToSend < height )
@@ -129,6 +125,18 @@ int main( int argc, char *argv[ ] )
                 MPI_Send( &currentRowToSend, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
 
                 currentRowToSend++;
+                taskCount++;
+            }
+            else //kill unneeded task
+            {
+                index = KILL_SWITCH;
+                MPI_Send( &index, 1, MPI_INT, status.MPI_SOURCE, 0, MPI_COMM_WORLD );
+            }
+
+            //stop looping if there are no more jobs to be done
+            if( taskCount <= 0 )
+            {
+                break;
             }
         }
 
@@ -139,23 +147,10 @@ int main( int argc, char *argv[ ] )
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
+        //save the image
         if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
         {
             std::cout<<"Failure saving image."<<std::endl;
-        }
-
-        currentRowToSend = KILL_SWITCH;
-
-        // terminate remaining tasks
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            MPI_Send( &currentRowToSend, 1, MPI_INT, index, 0, MPI_COMM_WORLD );
-        }
-
-        //wait for all tasks to terminate
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            MPI_Recv( &row, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
         }
     }
     else
@@ -169,17 +164,17 @@ int main( int argc, char *argv[ ] )
 
             if( row == KILL_SWITCH )
             {
-                MPI_Send( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
-
+                //terminate loop and task
                 break;
             }
 
+            //calculate the row's pixel values
             for( col = 0; col < width; col++ )
             {
-
                 tmp[ col ] = CalculatePixelAt( col, row, min, scale );
             }
 
+            //send the completed row
             MPI_Send( &row, 1, MPI_INT, 0, 0, MPI_COMM_WORLD );
             MPI_Send( &tmp[ 0 ], width, MPI_UNSIGNED_CHAR, 0, 1, MPI_COMM_WORLD );
         }
