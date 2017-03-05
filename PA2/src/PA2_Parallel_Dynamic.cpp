@@ -32,9 +32,6 @@
 
 //free function prototypes ///////////////////////////////////
 
-template< typename Type >
-bool RemoveAt( std::vector<Type> & data, int position );
-
 unsigned long long GetCurrentMicroSecTime( );
 
 double ConvertTimeToSeconds( unsigned long long usTime );
@@ -104,7 +101,7 @@ int main( int argc, char *argv[ ] )
         sTime = GetCurrentMicroSecTime( );
 
         //initial sending of rows
-        for( index = 0; index < std::min( numberOfTasks, height ); index++ )
+        for( index = 0; index < std::min( numberOfTasks - 1, height ); index++ )
         {
             MPI_Send( &index, 1, MPI_INT, index + 1, 0, MPI_COMM_WORLD );
         }
