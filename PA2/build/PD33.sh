@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH -n 25
+#SBATCH -n 33
 #SBATCH --mem=2048
 #SBATCH --time=00:10:00
 
-srun PA2_Parallel_Dynamic 8192 8192 images/parallel_d.pgm
+srun PA2_Parallel_Dynamic 16384 16384 images/parallel_dd.pgm
 
