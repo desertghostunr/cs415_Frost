@@ -2,7 +2,7 @@
 width=$1
 height=$2
 
-if ![[ -n "$width" ]]; then
+if ! [[ -n "$width" ]]; then
 	width="512"
 fi
 
