@@ -4,21 +4,15 @@ nodes=$1
 width=$2
 height=$3
 
-if [[ -n "$nodes" ]]; then
-	#do nothing
-else
+if ! [[ -n "$nodes" ]]; then
 	nodes="3"
 fi
 
-if [[ -n "$width" ]]; then
-	#do nothing
-else
+if ![[ -n "$width" ]]; then
 	width="512"
 fi
 
-if [[ -n "$height" ]]; then
-	#do nothing
-else
+if ! [[ -n "$height" ]]; then
 	height="512"
 fi
 

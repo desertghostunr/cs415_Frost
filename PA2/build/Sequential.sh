@@ -3,15 +3,11 @@
 width=$1
 height=$2
 
-if [[ -n "$width" ]]; then
-	#do nothing
-else
+if ![[ -n "$width" ]]; then
 	width="512"
 fi
 
-if [[ -n "$height" ]]; then
-	#do nothing
-else
+if ! [[ -n "$height" ]]; then
 	height="512"
 fi
 
