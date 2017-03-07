@@ -143,7 +143,7 @@ int main( int argc, char *argv[ ] )
         eTime = GetCurrentMicroSecTime( );
 
         //finishing up
-        std::cout<<"Parallel Dynamic"<<std::endl;
+        std::cout<<"Parallel Dynamic with "<<numberOfTasks<<" tasks."<<std::endl;
         std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
