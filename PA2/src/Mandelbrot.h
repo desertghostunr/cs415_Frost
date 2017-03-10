@@ -37,9 +37,11 @@ namespace mb
 
     // free function prototypes //////////////////////////////////
 
+    //general function for calculating a pixel
     int PixelGenerator( const ComplexNumber & complex );
-
-    int CalculatePixelAt( int col, int row,
+     
+    /*Calculates a pixel at a specific location*/
+    int CalculatePixelAt( int col, int row, 
                           const ComplexNumber & min, const ComplexNumber & scale );
 
 }

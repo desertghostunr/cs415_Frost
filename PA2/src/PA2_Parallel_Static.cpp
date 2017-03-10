@@ -67,6 +67,8 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
 
+    //process the command line parameters
+
     strStream.str( argv[ 1 ] );
     strStream >> width;
 
@@ -112,9 +114,7 @@ int main( int argc, char *argv[ ] )
 
         eTime = GetCurrentMicroSecTime( );
 
-        std::cout<<"Parallel Static with "<<numberOfTasks<<" tasks."<<std::endl;
-
-        std::cout<<"Image Dimensions\tTime(s)"<<std::endl;
+        std::cout<<"Parallel Static\t"<<numberOfTasks<<"\t";
         std::cout<<width<<"x"<<height<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
         if(!pim_write_black_and_white(saveName.c_str(), width, height, &image[0]))
@@ -150,6 +150,7 @@ int main( int argc, char *argv[ ] )
 
 // free function implementation //////////////////////////////////
 
+//get the time in microseconds. stores the result in an unsigned long long
 unsigned long long GetCurrentMicroSecTime( )
 {
     unsigned long long retTime;
@@ -163,6 +164,7 @@ unsigned long long GetCurrentMicroSecTime( )
     return retTime;
 }
 
+//gets the time in seconds. stores the result in a double
 double ConvertTimeToSeconds( unsigned long long usTime )
 {
     return ( double ) usTime / 1000000.0;

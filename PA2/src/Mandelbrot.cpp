@@ -1,5 +1,6 @@
 #include "Mandelbrot.h"
 
+//calculates a pixel based on a complex number
 int mb::PixelGenerator( const ComplexNumber & complex )
 {
     int itCount, maxIts;
@@ -26,12 +27,13 @@ int mb::PixelGenerator( const ComplexNumber & complex )
     return itCount;
 }
 
+//generates the pixel at a specific location in the image
 int mb::CalculatePixelAt
 (
-    int col,
-    int row,
-    const ComplexNumber & min,
-    const ComplexNumber & scale
+    int col, //the column of the location
+    int row, //the row of the location
+    const ComplexNumber & min, //the minimum complex value
+    const ComplexNumber & scale //how much to scale the values by
 )
 {
     ComplexNumber cNum;
