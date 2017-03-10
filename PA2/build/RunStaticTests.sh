@@ -33,4 +33,3 @@ sbatch -n 13 Static.sh 32768 32768
 sbatch -n 16 Static.sh 32768 32768
 sbatch -n 17 Static.sh 32768 32768
 sbatch -n 32 Static.sh 32768 32768
-sbatch -n 33 Static.sh 32768 32768
