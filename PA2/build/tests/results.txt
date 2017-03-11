@@ -7,24 +7,18 @@ Parallel Static	17	512x512	0.023125
 Parallel Static	32	512x512	0.034955
 Parallel Static	3	2048x2048	0.413252
 Parallel Static	8	2048x2048	0.40115
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	2048x2048	0.278418
 Parallel Static	16	2048x2048	0.258447
 Parallel Static	17	2048x2048	0.21439
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	3	8192x8192	6.40976
 Parallel Static	8	8192x8192	6.65601
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	8192x8192	3.62256
 Parallel Static	16	8192x8192	3.29434
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	8192x8192	1.63518
 Parallel Static	3	16384x16384	25.659
 Parallel Static	8	16384x16384	25.5899
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	16384x16384	15.0165
 Parallel Static	16	16384x16384	13.0123
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	16384x16384	6.97369
 Parallel Static	3	32768x32768	102.565
 Parallel Static	8	32768x32768	106.417
@@ -40,52 +34,43 @@ Sequential	1	16384x16384	51.5021
 Sequential	1	32768x32768	213.833
 Parallel Static	3	512x512	0.032301
 Parallel Static	8	512x512	0.028158
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	512x512	0.065163
 Parallel Static	16	512x512	0.019302
 Parallel Static	17	512x512	0.042082
 Parallel Static	32	512x512	0.093645
 Parallel Static	3	2048x2048	0.400168
 Parallel Static	8	2048x2048	0.398967
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	2048x2048	0.238218
 Parallel Static	16	2048x2048	0.212756
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	2048x2048	1.08972
 Parallel Static	3	8192x8192	6.4097
 Parallel Static	8	8192x8192	6.40004
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	8192x8192	3.75538
 Parallel Static	16	8192x8192	3.36228
 Parallel Static	17	8192x8192	2.90817
 Parallel Static	32	8192x8192	1.61048
 Parallel Static	3	16384x16384	25.6415
 Parallel Static	8	16384x16384	25.592
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	16384x16384	15.0166
 Parallel Static	16	16384x16384	13.4453
 Parallel Static	17	16384x16384	11.5908
 Parallel Static	32	16384x16384	6.42757
 Parallel Static	3	32768x32768	102.587
 Parallel Static	8	32768x32768	102.421
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	32768x32768	60.342
 Parallel Static	16	32768x32768	51.668
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	32768x32768	26.4018
 Parallel Static	3	512x512	0.035984
 Parallel Static	8	512x512	0.026625
 Parallel Static	9	512x512	0.026696
 Parallel Static	13	512x512	0.023134
 Parallel Static	16	512x512	0.021148
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	512x512	0.036738
 Parallel Static	3	2048x2048	0.40758
 Parallel Static	8	2048x2048	0.40103
 Parallel Static	9	2048x2048	0.308271
 Parallel Static	13	2048x2048	0.236272
 Parallel Static	16	2048x2048	0.205163
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	2048x2048	0.269691
 Parallel Static	3	8192x8192	6.65709
 Parallel Static	8	8192x8192	6.39407
@@ -106,8 +91,6 @@ Parallel Static	8	32768x32768	102.429
 Parallel Static	9	32768x32768	77.679
 Parallel Static	13	32768x32768	58.0824
 Parallel Static	16	32768x32768	53.6727
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	3	512x512	0.033286
 Parallel Static	8	512x512	0.02557
 Parallel Static	9	512x512	0.024114
@@ -120,46 +103,39 @@ Parallel Static	8	2048x2048	0.398738
 Parallel Static	9	2048x2048	0.315612
 Parallel Static	13	2048x2048	0.256437
 Parallel Static	16	2048x2048	0.231279
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	2048x2048	0.270428
 Parallel Static	3	8192x8192	6.40701
 Parallel Static	8	8192x8192	6.40293
 Parallel Static	9	8192x8192	4.86018
 Parallel Static	13	8192x8192	3.65038
 Parallel Static	16	8192x8192	3.36431
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	8192x8192	1.61215
 Parallel Static	3	16384x16384	25.6499
 Parallel Static	8	16384x16384	25.5755
 Parallel Static	9	16384x16384	19.4341
 Parallel Static	13	16384x16384	14.4637
 Parallel Static	16	16384x16384	13.4331
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	16384x16384	6.42768
 Parallel Static	3	32768x32768	102.54
 Parallel Static	8	32768x32768	102.385
 Parallel Static	9	32768x32768	78.0967
 Parallel Static	13	32768x32768	57.8478
 Parallel Static	16	32768x32768	53.7053
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	32768x32768	25.9978
 Parallel Static	3	512x512	0.031326
 Parallel Static	8	512x512	0.045957
 Parallel Static	9	512x512	0.021871
 Parallel Static	13	512x512	0.034005
 Parallel Static	16	512x512	0.097709
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	512x512	0.02812
 Parallel Static	3	2048x2048	0.412365
 Parallel Static	8	2048x2048	0.417284
 Parallel Static	9	2048x2048	0.309842
 Parallel Static	13	2048x2048	0.232842
 Parallel Static	16	2048x2048	0.219509
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	2048x2048	0.428632
 Parallel Static	3	8192x8192	6.41072
 Parallel Static	8	8192x8192	6.41846
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	13	8192x8192	3.62076
 Parallel Static	16	8192x8192	3.36457
 Parallel Static	17	8192x8192	2.93859
@@ -169,14 +145,12 @@ Parallel Static	8	16384x16384	26.5923
 Parallel Static	9	16384x16384	19.4366
 Parallel Static	13	16384x16384	14.5564
 Parallel Static	16	16384x16384	12.9234
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	16384x16384	6.42629
 Parallel Static	3	32768x32768	102.537
 Parallel Static	8	32768x32768	102.376
 Parallel Static	9	32768x32768	77.6881
 Parallel Static	13	32768x32768	60.0852
 Parallel Static	16	32768x32768	51.6669
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Static	32	32768x32768	25.6884
 Parallel Static	3	512x512	0.029528
 Parallel Static	8	512x512	0.029149
@@ -218,7 +192,6 @@ Parallel Dynamic	8	512x512	0.008194
 Parallel Dynamic	9	512x512	0.017403
 Parallel Dynamic	13	512x512	0.011271
 Parallel Dynamic	16	512x512	0.05449
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	512x512	0.087541
 Parallel Dynamic	3	2048x2048	0.409752
 Parallel Dynamic	8	2048x2048	0.122817
@@ -232,14 +205,12 @@ Parallel Dynamic	8	8192x8192	1.91335
 Parallel Dynamic	9	8192x8192	1.75295
 Parallel Dynamic	13	8192x8192	1.16926
 Parallel Dynamic	16	8192x8192	0.965885
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	8192x8192	34.4811
 Parallel Dynamic	3	16384x16384	25.7226
 Parallel Dynamic	8	16384x16384	7.34834
 Parallel Dynamic	9	16384x16384	6.77951
 Parallel Dynamic	13	16384x16384	4.60804
 Parallel Dynamic	16	16384x16384	3.71843
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	16384x16384	85.5577
 Parallel Dynamic	3	32768x32768	102.928
 Parallel Dynamic	8	32768x32768	29.3745
@@ -253,8 +224,6 @@ Parallel Dynamic	8	512x512	0.010704
 Parallel Dynamic	9	512x512	0.013353
 Parallel Dynamic	13	512x512	0.028543
 Parallel Dynamic	16	512x512	0.067531
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	2048x2048	0.407191
 Parallel Dynamic	8	2048x2048	0.115843
 Parallel Dynamic	9	2048x2048	0.12324
@@ -271,10 +240,8 @@ Parallel Dynamic	17	8192x8192	8.4284
 Parallel Dynamic	32	8192x8192	39.9506
 Parallel Dynamic	3	16384x16384	26.7488
 Parallel Dynamic	8	16384x16384	7.34906
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	16384x16384	4.57761
 Parallel Dynamic	16	16384x16384	3.77666
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	16384x16384	92.2424
 Parallel Dynamic	3	32768x32768	106.762
 Parallel Dynamic	8	32768x32768	30.5265
@@ -288,39 +255,30 @@ Parallel Dynamic	8	512x512	0.010386
 Parallel Dynamic	9	512x512	0.011623
 Parallel Dynamic	13	512x512	0.021749
 Parallel Dynamic	16	512x512	0.050959
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	2048x2048	0.404846
 Parallel Dynamic	8	2048x2048	0.116978
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	2048x2048	0.091041
 Parallel Dynamic	16	2048x2048	0.083541
 Parallel Dynamic	17	2048x2048	0.106872
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	8192x8192	6.45068
 Parallel Dynamic	8	8192x8192	1.8395
 Parallel Dynamic	9	8192x8192	1.74762
 Parallel Dynamic	13	8192x8192	1.1974
 Parallel Dynamic	16	8192x8192	0.968518
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	16384x16384	25.7318
 Parallel Dynamic	8	16384x16384	7.35291
 Parallel Dynamic	9	16384x16384	6.74095
 Parallel Dynamic	13	16384x16384	4.7204
 Parallel Dynamic	16	16384x16384	3.75357
 Parallel Dynamic	17	16384x16384	63.6754
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	32768x32768	102.849
 Parallel Dynamic	8	32768x32768	30.5497
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	32768x32768	18.1925
 Parallel Dynamic	16	32768x32768	15.5202
 Parallel Dynamic	17	32768x32768	155.138
 Parallel Dynamic	32	32768x32768	189.471
 Parallel Dynamic	3	512x512	0.032468
 Parallel Dynamic	8	512x512	0.008787
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	512x512	0.010708
 Parallel Dynamic	16	512x512	0.015402
 Parallel Dynamic	17	512x512	0.055513
@@ -330,21 +288,14 @@ Parallel Dynamic	8	2048x2048	0.11801
 Parallel Dynamic	9	2048x2048	0.128779
 Parallel Dynamic	13	2048x2048	0.088909
 Parallel Dynamic	16	2048x2048	0.072936
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	8192x8192	6.44641
 Parallel Dynamic	8	8192x8192	1.83973
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	8192x8192	1.21427
 Parallel Dynamic	16	8192x8192	0.996579
-srun: error: Unable to create job step: Task count specification invalid
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	3	16384x16384	25.7262
 Parallel Dynamic	8	16384x16384	7.34641
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	16384x16384	4.73747
 Parallel Dynamic	16	16384x16384	3.78671
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	16384x16384	84.5382
 Parallel Dynamic	3	32768x32768	106.8
 Parallel Dynamic	8	32768x32768	29.3856
@@ -358,14 +309,11 @@ Parallel Dynamic	8	512x512	0.010971
 Parallel Dynamic	9	512x512	0.014555
 Parallel Dynamic	13	512x512	0.017855
 Parallel Dynamic	16	512x512	0.057793
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	512x512	0.058235
 Parallel Dynamic	3	2048x2048	0.409907
 Parallel Dynamic	8	2048x2048	0.122063
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	2048x2048	0.088766
 Parallel Dynamic	16	2048x2048	0.091338
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	2048x2048	0.076523
 Parallel Dynamic	3	8192x8192	6.44686
 Parallel Dynamic	8	8192x8192	1.83856
@@ -393,21 +341,18 @@ Parallel Dynamic	8	512x512	0.011762
 Parallel Dynamic	9	512x512	0.013689
 Parallel Dynamic	13	512x512	0.01512
 Parallel Dynamic	16	512x512	0.031841
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	512x512	0.067801
 Parallel Dynamic	3	2048x2048	0.426723
 Parallel Dynamic	8	2048x2048	0.117376
 Parallel Dynamic	9	2048x2048	0.123352
 Parallel Dynamic	13	2048x2048	0.097251
 Parallel Dynamic	16	2048x2048	0.071343
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	2048x2048	0.10742
 Parallel Dynamic	3	8192x8192	6.44366
 Parallel Dynamic	8	8192x8192	1.91275
 Parallel Dynamic	9	8192x8192	1.73728
 Parallel Dynamic	13	8192x8192	1.18989
 Parallel Dynamic	16	8192x8192	0.960835
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	32	8192x8192	36.5362
 Parallel Dynamic	3	16384x16384	25.7544
 Parallel Dynamic	8	16384x16384	7.63722
@@ -418,7 +363,6 @@ Parallel Dynamic	17	16384x16384	63.1486
 Parallel Dynamic	32	16384x16384	79.2043
 Parallel Dynamic	3	32768x32768	102.842
 Parallel Dynamic	8	32768x32768	30.5355
-srun: error: Unable to create job step: Task count specification invalid
 Parallel Dynamic	13	32768x32768	18.1803
 Parallel Dynamic	16	32768x32768	15.425
 Parallel Dynamic	17	32768x32768	157.527
