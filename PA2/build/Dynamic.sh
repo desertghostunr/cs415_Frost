@@ -13,6 +13,7 @@ fi
 #SBATCH -n 3
 #SBATCH --mem=2048
 #SBATCH --time=00:05:00
+#SBATCH -o ../bin/dynamic-%j.out
 
-srun PA2_Parallel_Dynamic "$width" "$height" images/parallel_d_"$width"x"$height".pgm
+srun PA2_Parallel_Dynamic "$width" "$height" ../bin/parallel_d_"$width"x"$height".pgm
 

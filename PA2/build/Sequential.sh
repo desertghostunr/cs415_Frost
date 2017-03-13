@@ -14,5 +14,6 @@ fi
 #SBATCH -n 1
 #SBATCH --mem=2048
 #SBATCH --time=00:05:00
+#SBATCH -o ../bin/sequential-%j.out
 
-./PA2_Sequential "$width" "$height" images/sequential_"$width"x"$height".pgm
+./PA2_Sequential "$width" "$height" ../bin/sequential_"$width"x"$height".pgm
