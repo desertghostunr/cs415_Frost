@@ -1,5 +1,8 @@
 # PA2: "Mandelbrot"
 
+# Author 
+Andrew Frost
+
 # Dependencies, Building, and Running
 
 ## Dependency Instructions
@@ -16,28 +19,48 @@ ssh username@h1.cse.unr.edu
 Build this project using the provided makefile.
 
 # Quick running
-You may build script with a command.
+
+The program must be build in the build directory.
+
+You may build the project with a command.
 ```bash
+cd build
 make
 ```
 
-To run on one box use the following command:
+All of the parameters to the scripts can be replaced with other values to test.
+The parameters work as follows:
+
+sbatch -n [number of nodes] [Static/Dynamic script] [width of image] [height of image]
+
+sbatch Sequential.sh [width of image] [height of image]
+
+To run the sequential algorithm use the following command:
 ```bash
-sbatch One_box.sh
+sbatch Sequential.sh 512 512
 ```
 
-To run on two boxes use the following command:
+To run static task assignment use the following command:
 ```bash
-sbatch Two_box.sh
+sbatch -n 3 Static.sh 512 512
 ```
-To run the timing test use the following command:
+
+To run dynamic task assignment use the following command:
 ```bash
-sbatch Timing.sh
+sbatch -n 3 Dynamic.sh 512 512
 ```
+
+To batch 75 jobs used for the collection of timing data do the following:
+```bash
+chmod +x RunTests.sh
+./RunTests.sh
+```
+
 ### Makefile Instructions
-The makefile works as expected.
+The makefile works as expected. It must be ran inside of build.
 
 ```bash
+cd build
 make
 ```
 
@@ -45,9 +68,3 @@ To clean the files you've created, there is an extra target, `clean`.
 ```bash
 make clean
 ```
-
-### What are those command line parameters?
-PA1 has the following command line parameters:
-
-PA1 [ integer: number of ints ] [ integer: number of tests ] [ integer: number of timing tests to run ]
-
