@@ -42,15 +42,55 @@ namespace tSort
         @param: in: the max value in the data
 
     */    
-    template <typename Type>
-    void sBucket( std::vector<Type> & data, int numberOfBuckets, const Type & min, const Type & max )
+    template< typename Type >
+    void sBucket( std::vector< Type > & data, int numberOfBuckets, const Type & min, const Type & max )
     {
-        std::vector<std::vector<Type>> buckets;
+        int index;
+        int targetIndex;
+        Type pRegion;
+        std::vector< std::vector< Type > > buckets;
 
-        //size for the number of buckets
+        //resize for the number of buckets
         buckets.resize( numberOfBuckets );
 
+        //calculate the partition regions range
+        pRegion = ( ( max - min ) + static_cast< Type >( 1 ) ) / static_cast< Type >( numberOfBuckets );
         
+        //sort the data into buckets
+        for( index = 0; index < data.size( ); index++ )
+        {
+            //calculate the bucket of the number
+            targetIndex = static_cast< int >( data[ index ] / pRegion ) - 1;
+
+            //clip for bounds
+            targetIndex = std::max( 0, targetIndex );
+            targetIndex = std::min( targetIndex, numberOfBuckets );
+
+            //add data to bucket
+            buckets[ targetIndex ].push_back( data[ index ] );
+
+        }
+
+        //sort the buckets
+        for( index = 0; index < numberOfBuckets; index++ )
+        {
+            if( buckets[ index ].size( ) > 1 )
+            {
+                std::sort( buckets[ index ].begin( ), buckets.end( ) );
+            }           
+        }        
+
+        //merge the buckets
+        data.resize( 0 );
+
+        for( index = 0; index < numberOfBuckets; index++ )
+        {
+            for( targetIndex = 0; targetIndex < 0; targetIndex++ )
+            {
+                data.push_back( buckets[ index ][ targetIndex ] );
+            }
+        }
+
     }
 
 }
