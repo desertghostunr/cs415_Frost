@@ -20,16 +20,22 @@
 #include <vector>
 #include <sstream>
 #include <string>
+#include <fstream>
+#include <cmath>
 #include "Timer.h"
+#include "tSort.h"
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
+    //vars
     unsigned long long sTime, eTime;
-    std::vector<unsigned char> image;
-    int row, col;
-    int width = 0, height = 0;
+    std::vector< int > data;
+    int min, max, tmpInt, numberOfBuckets;
+    int index;
     std::string fileName;
+    std::stringstream strStream;
+    std::fstream file;
 
     //cmd line params
     if( argc < 2 )
@@ -39,24 +45,99 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
 
-    fileName = argv[ 1 ];
+    fileName = argv[ 1 ];    
 
-    //alloc 
+    //open the file
+    file.open( fileName.c_str( ) );
 
-    sTime = GetCurrentMicroSecTime();
-
+    if( !file.is_open( ) )
+    {
+        std::cout << "Error: unable to open " << fileName << "." << std::endl;
+        return -1;
+    }
+    
     //read in data
+    strStream.str( std::string( std::istreambuf_iterator<char>( file ),
+                                std::istreambuf_iterator<char>( ) ) );
+    file.close( );
+
+    //process the data
+    if( !( strStream >> tmpInt ) )
+    {
+        std::cout << "Error: Invalid data in file!" << std::endl;
+        return -1;
+    }
+
+    data.resize( tmpInt );
+    
+    max = -1 * std::numeric_limits<int>::infinity( );
+    min = std::numeric_limits<int>::infinity( );
+
+    for( index = 0; index < data.size( ); index++ )
+    {
+        if( !( strStream >> tmpInt ) )
+        {
+            std::cout << "Error: Invalid data in file!" << std::endl;
+            return -1;
+        }
+
+        if( tmpInt < min )
+        {
+            min = tmpInt;
+        }
+
+        if( tmpInt > max )
+        {
+            max = tmpInt;
+        }
+
+        data[ index ] = tmpInt;
+    }
+
+    //get the number of buckets to use
+    if( argc > 2 )
+    {
+        strStream.str( std::string( "" ) );
+        strStream.clear( );
+
+        strStream.str( argv[ 2 ] );
+
+        strStream >> numberOfBuckets;
+    }
+    else
+    {
+        numberOfBuckets = data.size( );
+    }
+
+    sTime = GetCurrentMicroSecTime( );
 
     //sort
+    tSort::sBucket( data, numberOfBuckets, min, max );
 
     eTime = GetCurrentMicroSecTime();
 
     //write out data
+    file.clear( );
 
-    //print the time  
+    file.open( std::string( "sorted_" + fileName ).c_str( ), std::fstream::out );
+
+    if( !file.is_open( ) )
+    {
+        std::cout << "Error: unable to save the sorted data." << std::endl;
+        return -1;
+    }
+
+    for( index = 0; index < data.size( ); index++ )
+    {
+        file << data[ index ] << std::endl;
+    }
+
+    file.close( );
+
+    //print the time
 
     std::cout<<"Sequential\t1\t";
-    std::cout<<<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
+    std::cout<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
     return 0;
 }
