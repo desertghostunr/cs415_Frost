@@ -55,7 +55,13 @@ namespace tSort
 
         //calculate the partition regions range
         pRegion = ( ( max - min ) + static_cast< Type >( 1 ) ) / static_cast< Type >( numberOfBuckets );
-        
+
+        if( pRegion <= static_cast< Type >( 0 ) )
+        {
+            pRegion = static_cast< Type >( 1 );
+
+        }
+
         //sort the data into buckets
         for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
         {
