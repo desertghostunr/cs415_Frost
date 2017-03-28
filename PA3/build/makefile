@@ -1,5 +1,5 @@
-CC=mpic++
-CXXFLAGS= -Wall #-O2 -Wall
+CC=mpic++ -std=c++0x
+CXXFLAGS= -O2 -Wall
 LIBS=-lpmi
 
 SRCDIR = ../src

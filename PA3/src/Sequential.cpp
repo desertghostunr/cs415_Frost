@@ -22,6 +22,8 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+#include <limits>
 #include "Timer.h"
 #include "tSort.h"
 
