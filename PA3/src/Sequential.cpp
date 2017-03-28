@@ -104,6 +104,11 @@ int main( int argc, char *argv[ ] )
         strStream.str( argv[ 2 ] );
 
         strStream >> numberOfBuckets;
+
+        if( numberOfBuckets < 1 )
+        {
+            numberOfBuckets = data.size( );
+        }
     }
     else
     {

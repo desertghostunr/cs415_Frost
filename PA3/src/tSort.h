@@ -21,7 +21,6 @@
 //header files ///////////////////////////////////////////////
 #include <algorithm>
 #include <vector>
-#include <iostream>
 
 //namespace declaration //////////////////////////////////////
 namespace tSort

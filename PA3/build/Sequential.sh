@@ -1,14 +1,14 @@
 #!/bin/bash
 
-width=$1
-height=$2
+file=$1
+buckets=$2
 
-if ! [[ -n "$width" ]]; then
-	width="512"
+if ! [[ -n "$file" ]]; then
+	file="data.txt"
 fi
 
-if ! [[ -n "$height" ]]; then
-	height="512"
+if ! [[ -n "$buckets" ]]; then
+	buckets="-1"
 fi
 
 #SBATCH -n 1
@@ -16,4 +16,4 @@ fi
 #SBATCH --time=00:05:00
 #SBATCH -o ../bin/sequential-%j.out
 
-./Sequential "$width" "$height" ../bin/sequential_"$width"x"$height".pgm
+./Sequential "$file" "$buckets"
