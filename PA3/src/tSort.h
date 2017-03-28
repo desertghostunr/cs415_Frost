@@ -21,6 +21,7 @@
 //header files ///////////////////////////////////////////////
 #include <algorithm>
 #include <vector>
+#include <iostream>
 
 //namespace declaration //////////////////////////////////////
 namespace tSort
@@ -57,14 +58,14 @@ namespace tSort
         pRegion = ( ( max - min ) + static_cast< Type >( 1 ) ) / static_cast< Type >( numberOfBuckets );
         
         //sort the data into buckets
-        for( index = 0; index < data.size( ); index++ )
+        for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
         {
             //calculate the bucket of the number
             targetIndex = static_cast< int >( data[ index ] / pRegion ) - 1;
 
             //clip for bounds
             targetIndex = std::max( 0, targetIndex );
-            targetIndex = std::min( targetIndex, numberOfBuckets );
+            targetIndex = std::min( targetIndex, numberOfBuckets - 1 );
 
             //add data to bucket
             buckets[ targetIndex ].push_back( data[ index ] );
@@ -76,8 +77,8 @@ namespace tSort
         {
             if( buckets[ index ].size( ) > 1 )
             {
-                std::sort( buckets[ index ].begin( ), buckets.end( ) );
-            }           
+                std::sort( buckets[ index ].begin( ), buckets[ index ].end( ) );                
+            }
         }        
 
         //merge the buckets
@@ -85,7 +86,7 @@ namespace tSort
 
         for( index = 0; index < numberOfBuckets; index++ )
         {
-            for( targetIndex = 0; targetIndex < 0; targetIndex++ )
+            for( targetIndex = 0; targetIndex < static_cast<int>( buckets[ index ].size( ) ); targetIndex++ )
             {
                 data.push_back( buckets[ index ][ targetIndex ] );
             }

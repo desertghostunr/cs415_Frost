@@ -36,6 +36,7 @@ int main( int argc, char *argv[ ] )
     std::string fileName;
     std::stringstream strStream;
     std::fstream file;
+    size_t extensionPos;
 
     //cmd line params
     if( argc < 2 )
@@ -73,7 +74,7 @@ int main( int argc, char *argv[ ] )
     max = -1 * std::numeric_limits<int>::infinity( );
     min = std::numeric_limits<int>::infinity( );
 
-    for( index = 0; index < data.size( ); index++ )
+    for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
     {
         if( !( strStream >> tmpInt ) )
         {
@@ -119,7 +120,18 @@ int main( int argc, char *argv[ ] )
     //write out data
     file.clear( );
 
-    file.open( std::string( "sorted_" + fileName ).c_str( ), std::fstream::out );
+    extensionPos = fileName.find_last_of( "." );
+
+    if( extensionPos == std::string::npos )
+    {
+        fileName += ".sorted";
+    }
+    else
+    {
+        fileName.insert( extensionPos, ".sorted" );
+    }
+
+    file.open( fileName.c_str( ), std::fstream::out );
 
     if( !file.is_open( ) )
     {
@@ -127,7 +139,9 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
 
-    for( index = 0; index < data.size( ); index++ )
+    file << static_cast<int>( data.size( ) ) << std::endl;
+
+    for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
     {
         file << data[ index ] << std::endl;
     }
@@ -137,7 +151,7 @@ int main( int argc, char *argv[ ] )
     //print the time
 
     std::cout<<"Sequential\t1\t";
-    std::cout<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
+    std::cout<<data.size()<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
     return 0;
 }

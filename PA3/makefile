@@ -1,41 +1,37 @@
 CC=mpic++
-CXXFLAGS= -O2 -Wall
+CXXFLAGS= -Wall #-O2 -Wall
 LIBS=-lpmi
 
 SRCDIR = ../src
-S_OBJ_FILES= Mandelbrot.o PA2_Sequential.o PIMFuncs.o
-P_S_OBJ_FILES= Mandelbrot.o PA2_Parallel_Static.o PIMFuncs.o
-P_D_OBJ_FILES= Mandelbrot.o PA2_Parallel_Dynamic.o PIMFuncs.o
+S_OBJ_FILES= Sequential.o Timer.o
+P_OBJ_FILES= Parallel.o Timer.o
 
 ifeq "$(wildcard $(SRCDIR) )" ""
 	SRCDIR = src
 endif
 
-all: S PD PS
+all: S G
+
+G: generator.o
+	mpicc -o generator generator.o
 
 S: $(S_OBJ_FILES)
-	$(CC) $(CXXFLAGS) -o PA2_Sequential $(S_OBJ_FILES) #$(LIBS)
+	$(CC) $(CXXFLAGS) -o Sequential $(S_OBJ_FILES)
 
-PS: $(P_S_OBJ_FILES)
-	$(CC) $(CXXFLAGS) -o PA2_Parallel_Static $(P_S_OBJ_FILES) $(LIBS)
+P: $(P_S_OBJ_FILES)
+	$(CC) $(CXXFLAGS) -o Parallel $(P_OBJ_FILES) $(LIBS)
 
-PD: $(P_D_OBJ_FILES)
-	$(CC) $(CXXFLAGS) -o PA2_Parallel_Dynamic $(P_D_OBJ_FILES) $(LIBS)
+generator.o: $(SRCDIR)/generator.c
+	mpicc -c $(SRCDIR)/generator.c 
 
-PA2_Sequential.o: $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
-	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PA2_Sequential.cpp $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.cpp
+Sequential.o: $(SRCDIR)/Sequential.cpp $(SRCDIR)/tSort.h $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Sequential.cpp $(SRCDIR)/Timer.cpp
 
-PA2_Parallel_Static.o: $(SRCDIR)/PA2_Parallel_Static.cpp $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
-	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PA2_Parallel_Static.cpp $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.cpp
+Parallel.o: $(SRCDIR)/Parallel.cpp $(SRCDIR)/tSort.h $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Sequential.cpp $(SRCDIR)/Timer.cpp
 
-PA2_Parallel_Dynamic.o: $(SRCDIR)/PA2_Parallel_Dynamic.cpp $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
-	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PA2_Parallel_Dynamic.cpp $(SRCDIR)/Mandelbrot.cpp $(SRCDIR)/PIMFuncs.cpp
-
-Mandelbrot.o: $(SRCDIR)/Mandelbrot.h $(SRCDIR)/Mandelbrot.cpp
-	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Mandelbrot.cpp
-
-PIMFuncs.o: $(SRCDIR)/PIMFuncs.h $(SRCDIR)/PIMFuncs.cpp
-	$(CC) $(CXXFLAGS) -c $(SRCDIR)/PIMFuncs.cpp
+Timer.o: $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
+	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Timer.cpp
 
 clean:
-	\rm *.o PA2_Sequential PA2_Parallel_Dynamic PA2_Parallel_Static
+	\rm *.o Sequential generator #Parallel

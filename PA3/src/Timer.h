@@ -20,6 +20,7 @@
 
 //header files /////////////////////////////////////////////////////////
 #include <sys/time.h>
+#include <iostream>
 
 //Gets the current time of the system in MicroSeconds
 unsigned long long GetCurrentMicroSecTime( );
