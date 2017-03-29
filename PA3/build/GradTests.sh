@@ -6,12 +6,12 @@ if ! [[ -n "$n" ]]; then
 	n="100000000"
 fi
 
-#for (( i=400000; i<=$n;i+=4980000 ))
-#do
-#	echo "Generating $i numbers"
+for (( i=400000; i<=$n;i+=4980000 ))
+do
+	echo "Generating $i numbers"
 
-#	./generator "$i" > ../bin/data"$i".txt
-#done
+	./generator "$i" > ../bin/data"$i".txt
+done
 
 
 for (( i=400000; i<=$n;i+=4980000 ))
