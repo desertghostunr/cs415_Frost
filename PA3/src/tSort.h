@@ -47,18 +47,18 @@ namespace tSort
     {
         int index;
         int targetIndex;
-        Type pRegion;
+        double pRegion;
         std::vector< std::vector< Type > > buckets;
 
         //resize for the number of buckets
         buckets.resize( numberOfBuckets );
 
         //calculate the partition regions range
-        pRegion = ( ( max - min ) + static_cast< Type >( 1 ) ) / static_cast< Type >( numberOfBuckets );
+        pRegion = ( static_cast< double >( max - min ) + 1.0  ) / static_cast< double >( numberOfBuckets );
 
-        if( pRegion <= static_cast< Type >( 0 ) )
+        if( pRegion <= 0.0 )
         {
-            pRegion = static_cast< Type >( 1 );
+            pRegion = 1.0;
 
         }
 
@@ -66,7 +66,7 @@ namespace tSort
         for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
         {
             //calculate the bucket of the number
-            targetIndex = static_cast< int >( data[ index ] / pRegion ) - 1;
+            targetIndex = static_cast< int >( static_cast< double >( data[ index ] ) / pRegion ) - 1;
 
             //clip for bounds
             targetIndex = std::max( 0, targetIndex );
