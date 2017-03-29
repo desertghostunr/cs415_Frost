@@ -10,7 +10,7 @@ for (( i=10; i<=$n;i=5*i ))
 do
 	echo "Generating $i numbers"
 
-	srun generator "$i" > ../bin/data"$i".txt
+	srun n1 generator "$i" > ../bin/data"$i".txt
 done
 
 for (( j = 0; j < 5; j++ ))
