@@ -4,7 +4,7 @@ file=$1
 buckets=$2
 
 if ! [[ -n "$file" ]]; then
-	file="data.txt"
+	file="../bin/data.txt"
 fi
 
 if ! [[ -n "$buckets" ]]; then

@@ -114,8 +114,10 @@ int main( int argc, char *argv[ ] )
     }
     else
     {
-        numberOfBuckets = data.size( );
+        numberOfBuckets = std::min( static_cast<int>( data.size( ) ), max - min );
     }
+
+    numberOfBuckets = std::max( 1, numberOfBuckets );
 
     sTime = GetCurrentMicroSecTime( );
 
