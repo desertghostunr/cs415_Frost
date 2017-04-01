@@ -47,19 +47,18 @@ int main( int argc, char *argv[ ] )
 
     int numberOfTasks, taskID;
 
-    MPI_Status status;
+    MPI_Status status;    
+    
+    MPI_Init( &argc, &argv );
+    MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
+    MPI_Comm_rank( MPI_COMM_WORLD, &taskID );
 
     //cmd line params error checking
     if( argc < 2 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
         std::cout << "srun n16 Parallel [file path name]" <<std::endl;
-        return -1;
     }
-    
-    MPI_Init( &argc, &argv );
-    MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
-    MPI_Comm_rank( MPI_COMM_WORLD, &taskID );
 
     if( numberOfTasks < 2 )
     {
@@ -175,7 +174,7 @@ int main( int argc, char *argv[ ] )
 
     //sort the data
     sTime = GetCurrentMicroSecTime( );
-    
+
     tSort::sBucket( data, numberOfTasks, min, max );
 
     eTime = GetCurrentMicroSecTime();
