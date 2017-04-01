@@ -22,6 +22,8 @@
 #include <string>
 #include <fstream>
 #include <cmath>
+#include <algorithm>
+#include <limits>
 #include "Timer.h"
 #include "tSort.h"
 
@@ -104,11 +106,18 @@ int main( int argc, char *argv[ ] )
         strStream.str( argv[ 2 ] );
 
         strStream >> numberOfBuckets;
+
+        if( numberOfBuckets < 1 )
+        {
+            numberOfBuckets = std::min( static_cast<int>( data.size( ) ), max - min );
+        }
     }
     else
     {
-        numberOfBuckets = data.size( );
+        numberOfBuckets = std::min( static_cast<int>( data.size( ) ), max - min );
     }
+
+    numberOfBuckets = std::max( 1, numberOfBuckets );
 
     sTime = GetCurrentMicroSecTime( );
 

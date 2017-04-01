@@ -31,29 +31,19 @@ make
 All of the parameters to the scripts can be replaced with other values to test.
 The parameters work as follows:
 
-sbatch -n [number of nodes] [Static/Dynamic script] [width of image] [height of image]
-
-sbatch Sequential.sh [width of image] [height of image]
+sbatch Sequential.sh [name of data file] [number of buckets]
 
 To run the sequential algorithm use the following command:
 ```bash
-sbatch Sequential.sh 512 512
+sbatch Sequential.sh ../bin/data.txt
 ```
 
-To run static task assignment use the following command:
-```bash
-sbatch -n 3 Static.sh 512 512
-```
-
-To run dynamic task assignment use the following command:
-```bash
-sbatch -n 3 Dynamic.sh 512 512
-```
-
-To batch 75 jobs used for the collection of timing data do the following:
+To run one set of timing tests do the following:
 ```bash
 chmod +x RunTests.sh
 ./RunTests.sh
+chmod +x GradTests.sh
+./GradTests.sh
 ```
 
 ### Makefile Instructions

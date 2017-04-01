@@ -1,76 +1,32 @@
 #!/bin/bash
-sbatch Sequential.sh 512 512
-sbatch -n 3 Static.sh 512 512
-sbatch -n 3 Dynamic.sh 512 512
-sbatch -n 9 Static.sh 512 512
-sbatch -n 9 Dynamic.sh 512 512
-sbatch -n 13 Static.sh 512 512
-sbatch -n 13 Dynamic.sh 512 512
-sbatch -n 16 Static.sh 512 512
-sbatch -n 16 Dynamic.sh 512 512
-sbatch -n 17 Static.sh 512 512
-sbatch -n 17 Dynamic.sh 512 512
-sbatch -n 32 Static.sh 512 512
-sbatch -n 32 Dynamic.sh 512 512
-sbatch -n 33 Static.sh 512 512
-sbatch -n 33 Dynamic.sh 512 512
-sbatch Sequential.sh 2048 2048
-sbatch -n 3 Static.sh 2048 2048
-sbatch -n 3 Dynamic.sh 2048 2048
-sbatch -n 9 Static.sh 2048 2048
-sbatch -n 9 Dynamic.sh 2048 2048
-sbatch -n 13 Static.sh 2048 2048
-sbatch -n 13 Dynamic.sh 2048 2048
-sbatch -n 16 Static.sh 2048 2048
-sbatch -n 16 Dynamic.sh 2048 2048
-sbatch -n 17 Static.sh 2048 2048
-sbatch -n 17 Dynamic.sh 2048 2048
-sbatch -n 32 Static.sh 2048 2048
-sbatch -n 32 Dynamic.sh 2048 2048
-sbatch -n 33 Static.sh 2048 2048
-sbatch -n 33 Dynamic.sh 2048 2048
-sbatch Sequential.sh 8192 8192
-sbatch -n 3 Static.sh 8192 8192
-sbatch -n 3 Dynamic.sh 8192 8192
-sbatch -n 9 Static.sh 8192 8192
-sbatch -n 9 Dynamic.sh 8192 8192
-sbatch -n 13 Static.sh 8192 8192
-sbatch -n 13 Dynamic.sh 8192 8192
-sbatch -n 16 Static.sh 8192 8192
-sbatch -n 16 Dynamic.sh 8192 8192
-sbatch -n 17 Static.sh 8192 8192
-sbatch -n 17 Dynamic.sh 8192 8192
-sbatch -n 32 Static.sh 8192 8192
-sbatch -n 32 Dynamic.sh 8192 8192
-sbatch -n 33 Static.sh 8192 8192
-sbatch -n 33 Dynamic.sh 8192 8192
-sbatch Sequential.sh 16384 16384
-sbatch -n 3 Static.sh 16384 16384
-sbatch -n 3 Dynamic.sh 16384 16384
-sbatch -n 9 Static.sh 16384 16384
-sbatch -n 9 Dynamic.sh 16384 16384
-sbatch -n 13 Static.sh 16384 16384
-sbatch -n 13 Dynamic.sh 16384 16384
-sbatch -n 16 Static.sh 16384 16384
-sbatch -n 16 Dynamic.sh 16384 16384
-sbatch -n 17 Static.sh 16384 16384
-sbatch -n 17 Dynamic.sh 16384 16384
-sbatch -n 32 Static.sh 16384 16384
-sbatch -n 32 Dynamic.sh 16384 16384
-sbatch -n 33 Static.sh 16384 16384
-sbatch -n 33 Dynamic.sh 16384 16384
-sbatch Sequential.sh 32768 32768
-sbatch -n 3 Static.sh 32768 32768
-sbatch -n 3 Dynamic.sh 32768 32768
-sbatch -n 9 Static.sh 32768 32768
-sbatch -n 9 Dynamic.sh 32768 32768
-sbatch -n 13 Static.sh 32768 32768
-sbatch -n 13 Dynamic.sh 32768 32768
-sbatch -n 16 Static.sh 32768 32768
-sbatch -n 16 Dynamic.sh 32768 32768
-sbatch -n 17 Static.sh 32768 32768
-sbatch -n 17 Dynamic.sh 32768 32768
-sbatch -n 32 Static.sh 32768 32768
-sbatch -n 32 Dynamic.sh 32768 32768
-sbatch -n 33 Static.sh 32768 32768
-sbatch -n 33 Dynamic.sh 32768 32768
+
+n=$1
+
+if ! [[ -n "$n" ]]; then
+	n="100000000"
+fi
+
+for (( i=10; i<=$n;i=5*i ))
+do
+	echo "Generating $i numbers"
+
+	./generator "$i" > ../bin/data"$i".txt
+	sleep 5
+
+done
+
+for (( j = 0; j < 5; j++ ))
+do
+	for (( i=10; i<=$n;i=5*i ))
+	do
+		echo "Running test of $i numbers"
+
+		sbatch Sequential.sh ../bin/data"$i".txt
+
+		sleep 2.5
+		squeue
+	done
+
+	sleep 60
+
+done

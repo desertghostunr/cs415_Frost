@@ -1,4 +1,4 @@
-CC=mpic++
+CC=mpic++ -std=c++0x
 CXXFLAGS= -Wall #-O2 -Wall
 LIBS=-lpmi
 
