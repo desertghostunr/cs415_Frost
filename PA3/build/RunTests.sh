@@ -50,6 +50,7 @@ do
 			sleep 3.5
 			squeue
 		done
+		sleep 30
 	done
 
 	sleep 120
@@ -58,7 +59,8 @@ done
 
 echo "Pausing before running gradual tests"
 sleep 120
-cat ../bin/*.out
+
+
 
 #generating tests
 for (( i=400000; i<=$n;i+=4980000 ))
@@ -103,6 +105,7 @@ do
 			sleep 20
 			squeue
 		done
+		sleep 45
 	done
 	sleep 120
 done
