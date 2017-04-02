@@ -28,9 +28,9 @@
 
 // pre-compiler directives /////////////////////////////////////
 #define SAVE_FLAG 1
-#define SAVE_CODE -1
-#define SEND_TIME_CODE -101
-#define SEND_DATA -201
+#define SAVE_CODE 101
+#define SEND_TIME_CODE 201
+#define SEND_DATA 301
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -65,6 +65,7 @@ int main( int argc, char *argv[ ] )
     if( numberOfTasks < 2 )
     {
         std::cout<<"Not enough tasks to run."<<std::endl;
+        MPI_Finalize( );
         return -1;
     }
 
@@ -146,8 +147,10 @@ int main( int argc, char *argv[ ] )
             }
 
             data[ index ] = tmpInt;
-        }
 
+            rmndr--;
+        }
+        
         file.close( );
 
         //send the min and the max to each slave
@@ -162,7 +165,7 @@ int main( int argc, char *argv[ ] )
         data.resize( amntOfData / numberOfTasks, 0 ); //alloc for data
         MPI_Recv( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, 0, SEND_DATA, MPI_COMM_WORLD, &status ); //get data
 
-        MPI_Recv( &minMax[ 0 ], 2, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
+        MPI_Recv( &minMax[ 0 ], 2, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status ); //get min and max
     }
 
     //wait for all processes to be ready
@@ -236,7 +239,7 @@ int main( int argc, char *argv[ ] )
                 std::cout << "Error: unable to save the sorted data." << std::endl;
             }
 
-            file << static_cast<int>( data.size( ) ) << std::endl;
+            file << amntOfData << std::endl;
 
             for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
             {
@@ -273,7 +276,7 @@ int main( int argc, char *argv[ ] )
     if( taskID == 0 )
     {
         std::cout<<"Parallel\t"<<numberOfTasks<<"\t";
-        std::cout<<data.size()<<"\t"<<finalTime<<std::endl;
+        std::cout<<amntOfData<<"\t"<<finalTime<<std::endl;
     }
 
    // finalize ///////////////////////////////////////////////////////////////////////// 

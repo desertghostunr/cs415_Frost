@@ -162,24 +162,22 @@ namespace tSort
         {
             if( index != bucketID )
             {
-                MPI_Isend( &buckets[ index ], static_cast< int >( buckets[ index ].size( ) ), MPI_INT, index, static_cast< int >( buckets[ index ].size( ) ), MPI_COMM_WORLD, &request );
+                MPI_Isend( &buckets[ index ][ 0 ], static_cast< int >( buckets[ index ].size( ) ), MPI_INT, index, static_cast< int >( buckets[ index ].size( ) ), MPI_COMM_WORLD, &request );
             }
         }        
 
         //receive the data from other buckets
-        for( index = 0; index < numberOfBuckets; index++ )
+        for( index = 1; index < numberOfBuckets; index++ )
         {
-            if( index != bucketID )
-            {
-                MPI_Recv( &tmpBucket[ 0 ], static_cast< int >( data.size( ) + 1 ), MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv( &tmpBucket[ 0 ], static_cast< int >( data.size( ) + 1 ), MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
 
-                //copy data
-                if( status.MPI_TAG > 0  )
-                {
-                    buckets[ bucketID ].insert( buckets[ bucketID ].end( ), tmpBucket.begin( ), tmpBucket.begin( ) + status.MPI_TAG );
-                }                
+            //copy data
+            if( status.MPI_TAG > 0 )
+            {
+                buckets[ bucketID ].insert( buckets[ bucketID ].end( ), tmpBucket.begin( ), tmpBucket.begin( ) + status.MPI_TAG );
+
             }
-        }
+        }        
 
         //sort my bucket
         std::sort( buckets[ bucketID ].begin( ), buckets[ bucketID ].end( ) );
