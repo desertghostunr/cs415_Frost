@@ -20,6 +20,7 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <sstream>
 #include <cmath>
 #include "mpi.h"
 #include "Timer.h"
@@ -43,6 +44,7 @@ int main( int argc, char *argv[ ] )
     int index, dIndex, rmndr;
     std::string fileName;
     std::fstream file;
+    std::stringstream strStream;
     size_t extensionPos;
 
     int numberOfTasks, taskID;
@@ -88,19 +90,11 @@ int main( int argc, char *argv[ ] )
         data.resize( tmpInt / numberOfTasks, 0 );
 
         //check if the data is divided even by the number of processes
-        if( tmpInt % numberOfTasks == 0 )
-        {
-            rmndr = 0;
-        }
-        else
-        {
-            rmndr = 1;
-        }
-
-        amntOfData = tmpInt;
+        
+        rmndr = amntOfData = tmpInt;
     
-        max = -1 * std::numeric_limits<int>::infinity( );
-        min = std::numeric_limits<int>::infinity( );
+        minMax[ 1 ] = -1 * std::numeric_limits<int>::infinity( );
+        minMax[ 0 ] = std::numeric_limits<int>::infinity( );
 
         //read in data and send it to the slaves
         for( index = 1; index < numberOfTasks; index++ )
@@ -123,13 +117,15 @@ int main( int argc, char *argv[ ] )
                 }
 
                 data[ dIndex ] = tmpInt;
+
+                rmndr--;
             }
 
             MPI_Send( &amntOfData, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD ); //send amntOfData
             MPI_Send( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, index, SEND_DATA, MPI_COMM_WORLD ); //send data          
         }
 
-        data.resize( data.size( ) + rmndr ); //resize for any remainder
+        data.resize( rmndr ); //resize for any remainder
 
         //read in data for master
         for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
@@ -175,9 +171,11 @@ int main( int argc, char *argv[ ] )
     //sort the data
     sTime = GetCurrentMicroSecTime( );
 
-    tSort::sBucket( data, numberOfTasks, min, max );
+    tSort::pBucket( data, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ] );
 
     eTime = GetCurrentMicroSecTime();
+
+    MPI_Barrier( MPI_COMM_WORLD );
 
     //get the sorting time from each task
     if( taskID == 0 )
@@ -186,9 +184,8 @@ int main( int argc, char *argv[ ] )
 
         for( index = 1; index < numberOfTasks; index++ )
         {
-            tmpInt = SEND_TIME_CODE;
-            MPI_Send( &tmpInt, 1, MPI_INT, index, SEND_TIME_CODE, MPI_COMM_WORLD ); //ask for timing data
-            MPI_Recv( &tTime, 1, MPI_DOUBLE, index, SEND_TIME_CODE - 1, MPI_COMM_WORLD, &status ); //get the timing data
+            tmpInt = SEND_TIME_CODE;            
+            MPI_Recv( &tTime, 1, MPI_DOUBLE, index, SEND_TIME_CODE, MPI_COMM_WORLD, &status ); //get the timing data
 
             finalTime += tTime;
         }
@@ -197,8 +194,7 @@ int main( int argc, char *argv[ ] )
     else
     {
         tTime = ConvertTimeToSeconds( eTime - sTime );
-        MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_TIME_CODE, MPI_COMM_WORLD, &status ); //request for timing data
-        MPI_Send( &tTime, 1, MPI_DOUBLE, 0, SEND_TIME_CODE - 1, MPI_COMM_WORLD ); //send the timing data
+        MPI_Send( &tTime, 1, MPI_DOUBLE, 0, SEND_TIME_CODE, MPI_COMM_WORLD ); //send the timing data
     }
 
 
@@ -216,6 +212,8 @@ int main( int argc, char *argv[ ] )
     //write out data ///////////////////////////////////////////////////////
     if( saveFlag )
     {
+        MPI_Barrier( MPI_COMM_WORLD );
+
         if( taskID == 0 )
         {
             file.clear( );
@@ -247,8 +245,6 @@ int main( int argc, char *argv[ ] )
 
             for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
             {
-                index = SAVE_CODE;
-                MPI_Send( &index, 1, MPI_INT, tmpInt, SAVE_CODE, MPI_COMM_WORLD ); //ask for data
                 MPI_Recv( &index, 1, MPI_INT, tmpInt, SAVE_CODE - 1, MPI_COMM_WORLD, &status ); //get number of pieces of data
                 data.resize( index ); //resize for data
                 MPI_Recv( &data[ 0 ], index, MPI_INT, tmpInt, SAVE_CODE - 2, MPI_COMM_WORLD, &status ); //receive data
@@ -265,7 +261,6 @@ int main( int argc, char *argv[ ] )
         } 
         else
         {
-            MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE, MPI_COMM_WORLD, &status ); //wait for order to save
             index = static_cast<int>( data.size( ) ); 
             MPI_Send( &index, 1, MPI_INT, 0, SAVE_CODE - 1, MPI_COMM_WORLD ); //send the size
             MPI_Send( &data[0], index, MPI_INT, 0, SAVE_CODE - 2, MPI_COMM_WORLD ); //send the data
@@ -283,7 +278,7 @@ int main( int argc, char *argv[ ] )
 
    // finalize ///////////////////////////////////////////////////////////////////////// 
     
-    MPI_Finalize();
+    MPI_Finalize( );
 
     return 0;
 }
