@@ -29,16 +29,15 @@
 // pre-compiler directives /////////////////////////////////////
 #define SAVE_FLAG 1
 #define SAVE_CODE 101
-#define SEND_TIME_CODE 201
-#define SEND_DATA 301
+#define SEND_DATA 201
 #define KILL_SWITCH -100
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
     //vars
-    unsigned long long sTime, eTime;
-    double tTime, finalTime;
+    unsigned long long sTime = 0ll, eTime = 0ll;
+    double finalTime;
     std::vector< int > data;
     std::vector< std::vector< int > > buckets;
     int tmpInt, amntOfData, saveFlag = 0;
@@ -202,32 +201,19 @@ int main( int argc, char *argv[ ] )
     MPI_Barrier( MPI_COMM_WORLD );    
 
     //sort the data
-    sTime = GetCurrentMicroSecTime( );
+    if( taskID == 0 )
+    {
+        sTime = GetCurrentMicroSecTime( );
+    }    
 
     tSort::pBucket( data, buckets, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ] );
 
-    eTime = GetCurrentMicroSecTime();
-
     MPI_Barrier( MPI_COMM_WORLD );
 
-    //get the sorting time from each task
     if( taskID == 0 )
     {
+        eTime = GetCurrentMicroSecTime( );
         finalTime = ConvertTimeToSeconds( eTime - sTime );
-
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            tmpInt = SEND_TIME_CODE;            
-            MPI_Recv( &tTime, 1, MPI_DOUBLE, index, SEND_TIME_CODE, MPI_COMM_WORLD, &status ); //get the timing data
-
-            finalTime += tTime;
-        }
-
-    }
-    else
-    {
-        tTime = ConvertTimeToSeconds( eTime - sTime );
-        MPI_Send( &tTime, 1, MPI_DOUBLE, 0, SEND_TIME_CODE, MPI_COMM_WORLD ); //send the timing data
     }
 
 
