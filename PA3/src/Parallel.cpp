@@ -31,6 +31,7 @@
 #define SAVE_CODE 101
 #define SEND_TIME_CODE 201
 #define SEND_DATA 301
+#define KILL_SWITCH -100
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -77,9 +78,20 @@ int main( int argc, char *argv[ ] )
         //open the file
         file.open( fileName.c_str( ) );
 
-        if( !file.is_open( ) )
+        if( !file.is_open( ) ) //if error then end program
         {
-            std::cout << "Error: unable to open " << fileName << "." << std::endl;            
+            std::cout << "Error: unable to open " << fileName << "." << std::endl;
+
+            for( index = 1; index < numberOfTasks; index++ )
+            {
+                amntOfData = KILL_SWITCH;
+
+                MPI_Send( &amntOfData, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD ); //send KILL_SWITCH due to error     
+            }
+
+            MPI_Barrier( MPI_COMM_WORLD );
+            MPI_Finalize();
+            return -1;
         }
     
         //read in data
@@ -162,6 +174,14 @@ int main( int argc, char *argv[ ] )
     else //slaves, get data for each slave
     {
         MPI_Recv( &amntOfData, 1, MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status ); //get total amntOfData
+
+        if( amntOfData == KILL_SWITCH )
+        {
+            MPI_Barrier( MPI_COMM_WORLD );
+            MPI_Finalize();
+            return -1;
+        }
+
         data.resize( amntOfData / numberOfTasks, 0 ); //alloc for data
         MPI_Recv( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, 0, SEND_DATA, MPI_COMM_WORLD, &status ); //get data
 
