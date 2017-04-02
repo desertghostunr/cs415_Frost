@@ -40,6 +40,7 @@ int main( int argc, char *argv[ ] )
     unsigned long long sTime, eTime;
     double tTime, finalTime;
     std::vector< int > data;
+    std::vector< std::vector< int > > buckets;
     int tmpInt, amntOfData, saveFlag = 0;
     int minMax[2];
     int index, dIndex, rmndr;
@@ -48,7 +49,7 @@ int main( int argc, char *argv[ ] )
     std::stringstream strStream;
     size_t extensionPos;
 
-    int numberOfTasks, taskID;
+    int numberOfTasks, taskID;    
 
     MPI_Status status;    
     
@@ -188,13 +189,22 @@ int main( int argc, char *argv[ ] )
         MPI_Recv( &minMax[ 0 ], 2, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status ); //get min and max
     }
 
+    //allocate the buckets for each processs
+    //resize for the number of buckets
+    buckets.resize( numberOfTasks );
+
+    for( index = 0; index < numberOfTasks; index++ )
+    {
+        buckets[ index ].reserve( (amntOfData / numberOfTasks ) + 1 );
+    }
+
     //wait for all processes to be ready
     MPI_Barrier( MPI_COMM_WORLD );    
 
     //sort the data
     sTime = GetCurrentMicroSecTime( );
 
-    tSort::pBucket( data, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ] );
+    tSort::pBucket( data, buckets, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ] );
 
     eTime = GetCurrentMicroSecTime();
 

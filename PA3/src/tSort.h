@@ -118,21 +118,18 @@ namespace tSort
     @param: in: max: the max value in the data
 
     */
-    void pBucket( std::vector< int > & data, int numberOfBuckets, int bucketID, int min, int max )
+    void pBucket( std::vector< int > & data, std::vector< std::vector< int > > & buckets, int numberOfBuckets, int bucketID, int min, int max )
     {
         int index;
         int targetIndex;
         double pRegion;
-        std::vector< std::vector< int > > buckets;
         std::vector< int > tmpBucket;
 
         tmpBucket.resize( data.size( ) + 1, 0 );
 
         MPI_Status status;
         MPI_Request request;
-
-        //resize for the number of buckets
-        buckets.resize( numberOfBuckets );
+        
 
         //calculate the partition regions range
         pRegion = ( static_cast< double >( max - min ) + 1.0 ) / static_cast< double >( numberOfBuckets );
@@ -174,14 +171,17 @@ namespace tSort
             //copy data
             if( status.MPI_TAG > 0 )
             {
-                buckets[ bucketID ].insert( buckets[ bucketID ].end( ), tmpBucket.begin( ), tmpBucket.begin( ) + status.MPI_TAG );
+                buckets[ bucketID ].insert( buckets[ bucketID ].end( ), tmpBucket.begin( ), tmpBucket.begin( ) + status.MPI_TAG );    
 
             }
         }        
 
         //sort my bucket
-        std::sort( buckets[ bucketID ].begin( ), buckets[ bucketID ].end( ) );
-
+        if( buckets[ bucketID ].size( ) > 1 )
+        {
+            std::sort( buckets[ bucketID ].begin( ), buckets[ bucketID ].end( ) );
+        }
+        
         data.resize( 0 );
 
         data = buckets[ bucketID ];
