@@ -40,7 +40,7 @@ int main( int argc, char *argv[ ] )
     double finalTime;
     std::vector< int > data;
     std::vector< std::vector< int > > buckets;
-    int tmpInt, amntOfData, saveFlag = 0;
+    int tmpInt, amntOfData, saveFlag = 0, maxBucketSize = 100000000;
     int minMax[2];
     int index, dIndex, rmndr;
     std::string fileName;
@@ -138,6 +138,8 @@ int main( int argc, char *argv[ ] )
             MPI_Send( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, index, SEND_DATA, MPI_COMM_WORLD ); //send data          
         }
 
+        maxBucketSize = std::max( rmndr, amntOfData / numberOfTasks );        
+
         data.resize( rmndr ); //resize for any remainder
 
         //read in data for master
@@ -169,6 +171,7 @@ int main( int argc, char *argv[ ] )
         for( index = 1; index < numberOfTasks; index++ )
         {
             MPI_Send( &minMax[ 0 ], 2, MPI_INT, index, SEND_DATA + 2, MPI_COMM_WORLD );
+            MPI_Send( &maxBucketSize, 1, MPI_INT, index, SEND_DATA + 3, MPI_COMM_WORLD );
         }
     }
     else //slaves, get data for each slave
@@ -186,6 +189,7 @@ int main( int argc, char *argv[ ] )
         MPI_Recv( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, 0, SEND_DATA, MPI_COMM_WORLD, &status ); //get data
 
         MPI_Recv( &minMax[ 0 ], 2, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status ); //get min and max
+        MPI_Recv( &maxBucketSize, 1, MPI_INT, 0, SEND_DATA + 3, MPI_COMM_WORLD, &status ); //get max bucket size
     }
 
     //allocate the buckets for each processs
@@ -196,7 +200,7 @@ int main( int argc, char *argv[ ] )
     {
         buckets[ index ].reserve( (amntOfData / numberOfTasks ) + 1 );
     }
-
+    
     //wait for all processes to be ready
     MPI_Barrier( MPI_COMM_WORLD );    
 
@@ -206,7 +210,7 @@ int main( int argc, char *argv[ ] )
         sTime = GetCurrentMicroSecTime( );
     }    
 
-    tSort::pBucket( data, buckets, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ] );
+    tSort::pBucket( data, buckets, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ], maxBucketSize );
 
     MPI_Barrier( MPI_COMM_WORLD );
 

@@ -118,14 +118,14 @@ namespace tSort
     @param: in: max: the max value in the data
 
     */
-    void pBucket( std::vector< int > & data, std::vector< std::vector< int > > & buckets, int numberOfBuckets, int bucketID, int min, int max )
+    void pBucket( std::vector< int > & data, std::vector< std::vector< int > > & buckets, int numberOfBuckets, int bucketID, int min, int max, int maxBucketSize )
     {
         int index;
         int targetIndex;
         double pRegion;
         std::vector< int > tmpBucket;
 
-        tmpBucket.resize( data.size( ) + 1, 0 );
+        tmpBucket.resize( maxBucketSize );
 
         MPI_Status status;
         MPI_Request request;
