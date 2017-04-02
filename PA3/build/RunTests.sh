@@ -47,10 +47,10 @@ do
 
 			sbatch -N "$(( (($k - 1) / 8) + 1 ))" -n "$k" Parallel.sh ../bin/data"$i".txt
 
-			sleep 3.5
+			sleep 25
 			squeue
 		done
-		sleep 30
+		sleep 35
 	done
 
 	sleep 120

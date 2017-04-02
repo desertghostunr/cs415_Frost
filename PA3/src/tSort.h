@@ -166,7 +166,7 @@ namespace tSort
         //receive the data from other buckets
         for( index = 1; index < numberOfBuckets; index++ )
         {
-            MPI_Recv( &tmpBucket[ 0 ], static_cast< int >( data.size( ) + 1 ), MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
+            MPI_Recv( &tmpBucket[ 0 ], maxBucketSize, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status );
 
             //copy data
             if( status.MPI_TAG > 0 )
