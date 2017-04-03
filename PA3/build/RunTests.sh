@@ -35,6 +35,7 @@ do
 		done
 		
 		sleep 60
+		sbatch Sequential.sh ../bin/data"$i".txt
 		squeue
 	done
 
@@ -97,6 +98,7 @@ do
 		done
 		
 		sleep 60
+		sbatch Sequential.sh ../bin/data"$i".txt
 		squeue
 	done
 
@@ -115,7 +117,7 @@ done
 #			sbatch -N "$(( (($k - 1) / 8) + 1 ))" -n "$k" Parallel.sh ../bin/data"$i".txt
 
 #			sleep 20
-			squeue
+#			squeue
 #		done
 #		sleep 45
 #	done
