@@ -177,7 +177,7 @@ int main( int argc, char *argv[ ] )
 
     //print the time
 
-    std::cout<<"Sequential\t1\t";
+    std::cout<<"Sequential\t"<<numberOfBuckets<<"\t";
     std::cout<<data.size()<<"\t"<<ConvertTimeToSeconds( eTime - sTime )<<std::endl;
 
     return 0;
