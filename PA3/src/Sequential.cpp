@@ -27,6 +27,9 @@
 #include "Timer.h"
 #include "tSort.h"
 
+// Pre-compiler directives ///////////////////////////////////
+#define SAVE_CODE 1
+
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
 {
@@ -125,37 +128,52 @@ int main( int argc, char *argv[ ] )
     tSort::sBucket( data, numberOfBuckets, min, max );
 
     eTime = GetCurrentMicroSecTime();
-
-    //write out data
-    file.clear( );
-
-    extensionPos = fileName.find_last_of( "." );
-
-    if( extensionPos == std::string::npos )
+    
+    tmpInt = -1;
+    
+    if( argc > 3 )
     {
-        fileName += ".sorted";
+        strStream.str( std::string( "" ) );
+        strStream.clear( );
+
+        strStream.str( argv[ 3 ] );
+
+        strStream >> tmpInt;
     }
-    else
+    
+    if( tmpInt == SAVE_CODE )
     {
-        fileName.insert( extensionPos, ".sorted" );
-    }
+        //write out data
+        file.clear( );
 
-    file.open( fileName.c_str( ), std::fstream::out );
+        extensionPos = fileName.find_last_of( "." );
 
-    if( !file.is_open( ) )
-    {
-        std::cout << "Error: unable to save the sorted data." << std::endl;
-        return -1;
-    }
+        if( extensionPos == std::string::npos )
+        {
+            fileName += ".sorted";
+        }
+        else
+        {
+            fileName.insert( extensionPos, ".sorted" );
+        }
 
-    file << static_cast<int>( data.size( ) ) << std::endl;
+        file.open( fileName.c_str( ), std::fstream::out );
 
-    for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
-    {
-        file << data[ index ] << std::endl;
-    }
+        if( !file.is_open( ) )
+        {
+            std::cout << "Error: unable to save the sorted data." << std::endl;
+            return -1;
+        }
 
-    file.close( );
+        file << static_cast<int>( data.size( ) ) << std::endl;
+
+        for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
+        {
+            file << data[ index ] << std::endl;
+        }
+
+        file.close( );
+    }    
 
     //print the time
 
