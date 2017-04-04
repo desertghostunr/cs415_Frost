@@ -20,7 +20,7 @@ do
 done
 
 #sequential
-for (( j = 0; j < 5; j++ ))
+for (( j = 0; j < 4; j++ ))
 do
 	for (( i=10; i<=$n;i=5*i ))
 	do
