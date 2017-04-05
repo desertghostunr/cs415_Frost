@@ -18,7 +18,7 @@ fi
 
 #SBATCH -n 1
 #SBATCH --mem=16384
-#SBATCH --time=00:06:00
+#SBATCH --time=00:20:00
 #SBATCH -o ../bin/sequential-%j.out
 
 ./Sequential "$file" "$buckets" "$save"

@@ -30,7 +30,7 @@ for (( j = 0; j < 5; j++ ))
 do
 	for (( i=10; i<=$n;i=10*i ))
 	do
-		for (( k=2; k<=16;k=2*k ))
+		for (( k=2; k<=32;k=2*k ))
 		do
 			echo "Running test of $i numbers and $k tasks on $(( (($k - 1) / 8) + 1 )) boxes"
 
@@ -111,7 +111,7 @@ for (( j = 0; j < 5; j++ ))
 do
 	for (( i=200000; i<=2000000000;i=10*i))
 	do
-		for (( k=2; k<=16;k=2*k ))
+		for (( k=2; k<=32;k=2*k ))
 		do
 			echo "Running test of $i numbers and $k tasks on $(( (($k - 1) / 8) + 1 )) boxes"
 
