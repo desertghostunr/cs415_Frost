@@ -17,7 +17,7 @@ if ! [[ -n "$save" ]]; then
 fi
 
 #SBATCH -n 1
-#SBATCH --mem=2048
+#SBATCH --mem=16384
 #SBATCH --time=00:05:00
 #SBATCH -o ../bin/sequential-%j.out
 

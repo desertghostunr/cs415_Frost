@@ -70,8 +70,7 @@ int main( int argc, char *argv[ ] )
     //process the data
     if( !( strStream >> tmpInt ) )
     {
-        std::cout << "Error: Invalid data in file!" << std::endl;
-        return -1;
+        std::cout << "Warning: Invalid data in file!" << std::endl;
     }
 
     data.resize( tmpInt );
