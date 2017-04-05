@@ -20,7 +20,6 @@
 #include <vector>
 #include <sstream>
 #include <string>
-#include <fstream>
 #include <cmath>
 #include <algorithm>
 #include <limits>
@@ -29,6 +28,8 @@
 
 // Pre-compiler directives ///////////////////////////////////
 #define SAVE_CODE 1
+#define SEED 100102330
+#define UPPER_BOUND 100000
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -38,53 +39,35 @@ int main( int argc, char *argv[ ] )
     std::vector< int > data;
     int min, max, tmpInt, numberOfBuckets;
     int index;
-    std::string fileName;
     std::stringstream strStream;
-    std::fstream file;
-    size_t extensionPos;
+    size_t numberOfValues;
 
     //cmd line params
     if( argc < 2 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
-        std::cout << "./Sequential [file path name]" <<std::endl;
+        std::cout << "./Sequential [number of ints]" <<std::endl;
         return -1;
     }
 
-    fileName = argv[ 1 ];    
-
-    //open the file
-    file.open( fileName.c_str( ) );
-
-    if( !file.is_open( ) )
-    {
-        std::cout << "Error: unable to open " << fileName << "." << std::endl;
-        return -1;
-    }
-    
-    //read in data
-    strStream.str( std::string( std::istreambuf_iterator<char>( file ),
-                                std::istreambuf_iterator<char>( ) ) );
-    file.close( );
+    strStream.str(argv[ 1 ]);    
 
     //process the data
-    if( !( strStream >> tmpInt ) )
+    if( !( strStream >> numberOfValues ) )
     {
-        std::cout << "Warning: Invalid data in file!" << std::endl;
+        std::cout << "Error: Invalid number of integers!" << std::endl;
+        return -1;
     }
 
-    data.resize( tmpInt );
+    //generate data
+    tSort::generateData( SEED, numberOfValues, UPPER_BOUND, data );
     
     max = -1 * std::numeric_limits<int>::infinity( );
     min = std::numeric_limits<int>::infinity( );
 
     for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
     {
-        if( !( strStream >> tmpInt ) )
-        {
-            std::cout << "Error: Invalid data in file!" << std::endl;
-            return -1;
-        }
+        tmpInt = data[index];
 
         if( tmpInt < min )
         {
@@ -95,8 +78,6 @@ int main( int argc, char *argv[ ] )
         {
             max = tmpInt;
         }
-
-        data[ index ] = tmpInt;
     }
 
     //get the number of buckets to use
@@ -121,13 +102,7 @@ int main( int argc, char *argv[ ] )
 
     numberOfBuckets = std::max( 1, numberOfBuckets );
 
-    sTime = GetCurrentMicroSecTime( );
-
-    //sort
-    tSort::sBucket( data, numberOfBuckets, min, max );
-
-    eTime = GetCurrentMicroSecTime();
-    
+    //print current data if requested
     tmpInt = -1;
     
     if( argc > 3 )
@@ -139,39 +114,42 @@ int main( int argc, char *argv[ ] )
 
         strStream >> tmpInt;
     }
+
+    
+
+    if( tmpInt == SAVE_CODE )
+    {
+        //write out data
+        std::cout << "Unsorted data: "<<std::endl;
+        std::cout<< static_cast<int>( data.size( ) ) << std::endl;
+
+        for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
+        {
+            std::cout << data[ index ] << std::endl;
+        }
+        std::cout << std::endl;
+    }
+
+
+    sTime = GetCurrentMicroSecTime( );
+
+    //sort
+    tSort::sBucket( data, numberOfBuckets, min, max );
+
+    eTime = GetCurrentMicroSecTime();   
+    
     
     if( tmpInt == SAVE_CODE )
     {
         //write out data
-        file.clear( );
-
-        extensionPos = fileName.find_last_of( "." );
-
-        if( extensionPos == std::string::npos )
-        {
-            fileName += ".sorted";
-        }
-        else
-        {
-            fileName.insert( extensionPos, ".sorted" );
-        }
-
-        file.open( fileName.c_str( ), std::fstream::out );
-
-        if( !file.is_open( ) )
-        {
-            std::cout << "Error: unable to save the sorted data." << std::endl;
-            return -1;
-        }
-
-        file << static_cast<int>( data.size( ) ) << std::endl;
+        std::cout << "Sorted data: "<<std::endl;
+        std::cout<< static_cast<int>( data.size( ) ) << std::endl;
 
         for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
         {
-            file << data[ index ] << std::endl;
+            std::cout << data[ index ] << std::endl;
         }
-
-        file.close( );
+        std::cout << std::endl;
     }    
 
     //print the time

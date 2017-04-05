@@ -19,7 +19,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <fstream>
 #include <sstream>
 #include <cmath>
 #include "mpi.h"
@@ -31,6 +30,8 @@
 #define SAVE_CODE 101
 #define SEND_DATA 201
 #define KILL_SWITCH -100
+#define SEED 100102330
+#define UPPER_BOUND 100000
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -38,15 +39,13 @@ int main( int argc, char *argv[ ] )
     //vars
     unsigned long long sTime = 0ll, eTime = 0ll;
     double finalTime;
-    std::vector< int > data;
+    std::vector< int > data, tmpData;
     std::vector< std::vector< int > > buckets;
     int tmpInt, amntOfData, saveFlag = 0, maxBucketSize = 100000000;
     int minMax[2];
     int index, dIndex, rmndr;
-    std::string fileName;
-    std::fstream file;
     std::stringstream strStream;
-    size_t extensionPos;
+    size_t numberOfValues;
 
     int numberOfTasks, taskID;    
 
@@ -60,7 +59,7 @@ int main( int argc, char *argv[ ] )
     if( argc < 2 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
-        std::cout << "srun n16 Parallel [file path name]" <<std::endl;
+        std::cout << "srun n16 Parallel [number of ints]" <<std::endl;
     }
 
     if( numberOfTasks < 2 )
@@ -70,17 +69,27 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
 
+    //get whether or not to save ////////////////////////////////////////////
+    if( argc > 2 )
+    {
+        strStream.str( std::string( "" ) );
+        strStream.clear( );
+
+        strStream.str( argv[ 2 ] );
+
+        strStream >> saveFlag;
+    }
+
     //master
     if( taskID == 0 )
     {
-        fileName = argv[ 1 ];    
+        strStream.str( std::string( "" ) );
+        strStream.clear( );
+        strStream.str(argv[ 1 ]);  
 
-        //open the file
-        file.open( fileName.c_str( ) );
-
-        if( !file.is_open( ) ) //if error then end program
+        if( !( strStream >> numberOfValues ) ) //if error then end program
         {
-            std::cout << "Error: unable to open " << fileName << "." << std::endl;
+            std::cout << "Error: invalid number of integers." << std::endl;
 
             for( index = 1; index < numberOfTasks; index++ )
             {
@@ -93,31 +102,32 @@ int main( int argc, char *argv[ ] )
             MPI_Finalize();
             return -1;
         }
-    
-        //read in data
-        if( !(file >> tmpInt ) )
-        {
-            std::cout << "Warning: Corrupted file contents detected." << std::endl;
-        }
 
-        data.resize( tmpInt / numberOfTasks, 0 );
+        //generate data
+        tSort::generateData( SEED, numberOfValues, UPPER_BOUND, tmpData );
+
+        data.resize( static_cast<int> ( numberOfValues ) / numberOfTasks, 0 );
 
         //check if the data is divided even by the number of processes
         
-        rmndr = amntOfData = tmpInt;
+        rmndr = amntOfData = static_cast<int> ( numberOfValues );
     
         minMax[ 1 ] = -1 * std::numeric_limits<int>::infinity( );
         minMax[ 0 ] = std::numeric_limits<int>::infinity( );
 
-        //read in data and send it to the slaves
+        if( saveFlag == SAVE_FLAG )
+        {
+            std::cout << "Unsorted Data: " << std::endl;
+            std::cout << amntOfData << std::endl;
+        }
+
+        //copy data and send it to the slaves
         for( index = 1; index < numberOfTasks; index++ )
         {
             for( dIndex = 0; dIndex < static_cast<int>( data.size( ) ); dIndex++ )
             {
-                if( !(file >> tmpInt ) )
-                {
-                    std::cout << "Warning: Corrupted file contents detected." << std::endl;
-                }
+                tmpInt = tmpData.back( );
+                tmpData.pop_back( );
 
                 if( tmpInt < minMax[ 0 ] )
                 {
@@ -131,6 +141,11 @@ int main( int argc, char *argv[ ] )
 
                 data[ dIndex ] = tmpInt;
 
+                if( saveFlag == SAVE_FLAG )
+                {
+                    std::cout << tmpInt << std::endl;
+                }
+
                 rmndr--;
             }
 
@@ -142,13 +157,11 @@ int main( int argc, char *argv[ ] )
 
         data.resize( rmndr ); //resize for any remainder
 
-        //read in data for master
+        //copy data for master
         for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
         {
-            if( !(file >> tmpInt ) )
-            {
-                std::cout << "Warning: Corrupted file contents detected." << std::endl;
-            }
+            tmpInt = tmpData.back( );
+            tmpData.pop_back( );
 
             if( tmpInt < minMax[ 0 ] )
             {
@@ -162,10 +175,20 @@ int main( int argc, char *argv[ ] )
 
             data[ index ] = tmpInt;
 
+            if( saveFlag == SAVE_FLAG )
+            {
+                std::cout << tmpInt << std::endl;
+            }
+
             rmndr--;
         }
-        
-        file.close( );
+
+        tmpData.clear( );
+
+        if( saveFlag == SAVE_FLAG )
+        {
+            std::cout << std::endl;
+        }
 
         //send the min and the max to each slave
         for( index = 1; index < numberOfTasks; index++ )
@@ -202,7 +225,7 @@ int main( int argc, char *argv[ ] )
     }
     
     //wait for all processes to be ready
-    MPI_Barrier( MPI_COMM_WORLD );    
+    MPI_Barrier( MPI_COMM_WORLD );
 
     //sort the data
     if( taskID == 0 )
@@ -218,52 +241,22 @@ int main( int argc, char *argv[ ] )
     {
         eTime = GetCurrentMicroSecTime( );
         finalTime = ConvertTimeToSeconds( eTime - sTime );
-    }
-
-
-    //get whether or not to save ////////////////////////////////////////////
-    if( argc > 2 )
-    {
-        strStream.str( std::string( "" ) );
-        strStream.clear( );
-
-        strStream.str( argv[ 2 ] );
-
-        strStream >> saveFlag;
-    }
+    }    
     
     //write out data ///////////////////////////////////////////////////////
-    if( saveFlag )
+    if( saveFlag == SAVE_FLAG )
     {
         MPI_Barrier( MPI_COMM_WORLD );
 
         if( taskID == 0 )
         {
-            file.clear( );
+            std::cout << "Sorted Data: " << std::endl;
 
-            extensionPos = fileName.find_last_of( "." );
-
-            if( extensionPos == std::string::npos )
-            {
-                fileName += ".sorted";
-            }
-            else
-            {
-                fileName.insert( extensionPos, ".sorted" );
-            }
-
-            file.open( fileName.c_str( ), std::fstream::out );
-
-            if( !file.is_open( ) )
-            {
-                std::cout << "Error: unable to save the sorted data." << std::endl;
-            }
-
-            file << amntOfData << std::endl;
-
+            std::cout << amntOfData << std::endl;
+            //write out master
             for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
             {
-                file << data[ index ] << std::endl;
+                std::cout << data[ index ] << std::endl;
             }
 
             for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
@@ -275,12 +268,12 @@ int main( int argc, char *argv[ ] )
                 //write out data
                 for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
                 {
-                    file << data[ index ] << std::endl;
+                    std::cout << data[ index ] << std::endl;
                 }
 
             }
 
-            file.close( );
+            std::cout << std::endl;
         } 
         else
         {

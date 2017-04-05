@@ -5,7 +5,7 @@ buckets=$2
 save=$3
 
 if ! [[ -n "$file" ]]; then
-	file="../bin/data.txt"
+	file="1000"
 fi
 
 if ! [[ -n "$buckets" ]]; then
@@ -18,7 +18,7 @@ fi
 
 #SBATCH -n 1
 #SBATCH --mem=16384
-#SBATCH --time=00:05:00
+#SBATCH --time=00:06:00
 #SBATCH -o ../bin/sequential-%j.out
 
 ./Sequential "$file" "$buckets" "$save"

@@ -21,12 +21,42 @@
 //header files ///////////////////////////////////////////////
 #include <algorithm>
 #include <vector>
+#include <cstdlib>
 #include "mpi.h"
 
 //namespace declaration //////////////////////////////////////
 namespace tSort
 {
     // templated function declarations ///////////////////////
+    /* 
+        @brief: insertionSort
+
+        @details: an insertion sort algorithm
+
+        @param: in / out: data: the data to sort
+
+    */   
+    template< typename Type >
+    void insertionSort( std::vector< Type > & data )
+    {
+        size_t in, out;
+        Type tmp;
+
+        for( out = 1; out < data.size(); out++ )
+        {
+            in = out;
+            while( in > 0 && data[ in - 1 ] > data[ in ] )
+            {
+                tmp = data[ in ];
+                data[ in ] = data[ in - 1 ];
+                data[ in - 1 ] = tmp;
+
+                in = in - 1;
+            }
+        }
+
+    }
+
     /* 
         @brief: sBucket
 
@@ -83,7 +113,7 @@ namespace tSort
         {
             if( buckets[ index ].size( ) > 1 )
             {
-                std::sort( buckets[ index ].begin( ), buckets[ index ].end( ) );                
+                insertionSort( buckets[ index ] );    
             }
         }        
 
@@ -179,13 +209,42 @@ namespace tSort
         //sort my bucket
         if( buckets[ bucketID ].size( ) > 1 )
         {
-            std::sort( buckets[ bucketID ].begin( ), buckets[ bucketID ].end( ) );
+            insertionSort( buckets[ bucketID ] );
         }
         
         data.resize( 0 );
 
         data = buckets[ bucketID ];
 
+    }
+
+
+    /*
+    @brief: generateData
+
+    @details: generates data to sort
+
+    @param: in: seed: the seed to the algorithm with
+
+    @param: in: numberOfValues: the number of pieces of data to generate
+
+    @param in: upperBound: highest value
+
+    @param: out: data: a vector of the data generated
+    */
+
+    void generateData( unsigned int seed, size_t numberOfValues, int upperBound, std::vector<int> & data )
+    {
+        size_t index;
+        data.resize( 0 );
+        data.reserve( numberOfValues );
+
+        std::srand( seed ); //seed
+
+        for( index = 0; index < numberOfValues; index++ ) //generate values
+        {
+            data.push_back( std::rand( ) % ( upperBound + 1 ) );
+        }
     }
 
 }

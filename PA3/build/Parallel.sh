@@ -4,7 +4,7 @@ file=$1
 save=$2
 
 if ! [[ -n "$file" ]]; then
-	file="../bin/data.txt"
+	file="1000"
 fi
 
 if ! [[ -n "$save" ]]; then
@@ -12,8 +12,8 @@ if ! [[ -n "$save" ]]; then
 fi
 
 #SBATCH -n 2
-#SBATCH --mem=2048
-#SBATCH --time=00:05:00
+#SBATCH --mem=16384
+#SBATCH --time=00:06:00
 #SBATCH -o ../bin/parallel-%j.out
 
 srun Parallel "$file" "$save"
