@@ -16,6 +16,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <vector>
 #include <string>
 
 // helper structs //////////////////////////
@@ -79,7 +80,7 @@ int main( )
         {
             if( averagedData[ index ].type == tmpData.type
                 && averagedData[ index ].buckets == tmpData.buckets
-                && averagedData[ index ] == tmpData.numberOfIntegers )
+                && averagedData[ index ].numberOfIntegers == tmpData.numberOfIntegers )
             {
                 exists = true;
 
@@ -95,19 +96,39 @@ int main( )
             averagedData.back( ).type = tmpData.type;
             averagedData.back( ).buckets = tmpData.buckets;
             averagedData.back( ).numberOfIntegers = tmpData.numberOfIntegers;
-            averagedData.back( ).sTime = averagedData.sTime;
-            averagedData.back( ).denominator = averagedData.denominator;
+            averagedData.back( ).sTime = tmpData.sTime;
+            averagedData.back( ).denominator = tmpData.denominator;
             exists = true;
         }
     }
 
 
-    for( index = 0; index < averagedData.size( ); index++ )
+    std::cout << "Please specify the file path to save the data: ";
+
+    std::cin >> file;
+
+    std::cout << std::endl;
+
+
+    fileStream.clear( );
+
+    fileStream.open( file.c_str( ) );
+
+    if( !fileStream.is_open( ) )
     {
-        std::cout << averagedData[ index ].type << "/t" << averagedData[ index ].buckets << "/t" << averagedData[ index ].numberOfIntegers;
-        std::cout << "/t" << ( averagedData[ index ].sTime / averagedData[ index ].denominator ) << std::endl;
+        std::cout << "Unable to open the file! Sorry." << std::endl;
+        return -1;
     }
 
+    for( index = 0; index < averagedData.size( ); index++ )
+    {
+        fileStream << averagedData[ index ].type << "\t" << averagedData[ index ].buckets << "\t" << averagedData[ index ].numberOfIntegers;
+        fileStream << "\t" << ( averagedData[ index ].sTime / averagedData[ index ].denominator ) << std::endl;
+    }
+
+    fileStream.close( );
+
+    std::cout << "Save operation complete." << std::endl;
 
     return 0;
 
