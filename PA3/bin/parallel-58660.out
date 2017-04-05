@@ -1,0 +1,7 @@
+srun: error: compute-0-3: task 0: Killed
+srun: Job step aborted: Waiting up to 2 seconds for job step to finish.
+slurmstepd: *** JOB 58660 CANCELLED AT 2017-04-05T10:26:37 DUE TO TIME LIMIT on compute-0-3 ***
+slurmstepd: *** STEP 58660.0 CANCELLED AT 2017-04-05T10:26:37 DUE TO TIME LIMIT on compute-0-3 ***
+srun: got SIGCONT
+srun: forcing job termination
+srun: error: compute-0-3: tasks 1-7: Terminated

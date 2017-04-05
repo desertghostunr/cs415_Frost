@@ -7,7 +7,7 @@ if ! [[ -n "$n" ]]; then
 fi
 
 #sequential
-for (( j = 0; j < 5; j++ ))
+for (( j = 0; j < 0; j++ ))
 do
 	for (( i=10; i<=$n;i=10*i ))
 	do
@@ -27,7 +27,7 @@ do
 done
 
 #parallel
-for (( j = 0; j < 5; j++ ))
+for (( j = 0; j < 1; j++ ))
 do
 	for (( i=10; i<=$n;i=10*i ))
 	do
@@ -89,7 +89,7 @@ done
 #sequential tests
 for (( j=0; j<5; j++ ))
 do
-	for (( i=500000; i<=1000000000;i=i+500000 ))
+	for (( i=500000000; i<=1000000000;i=i+500000000 ))
 	do
 		echo "Running test of $i numbers"
 		TEST=$(squeue -o"%.18i %.9P %.20j %.20u %.8T %.10M %.9l %.6D %R")
@@ -110,7 +110,7 @@ done
 #parallel tests
 for (( j = 0; j < 5; j++ ))
 do
-	for (( i=500000; i<=1000000000;i=i+500000 ))
+	for (( i=500000000; i<=1000000000;i=i+500000000 ))
 	do
 		for (( k=2; k<=32;k=2*k ))
 		do

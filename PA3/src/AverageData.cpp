@@ -25,7 +25,7 @@ struct TimingData
     int buckets;
     int numberOfIntegers;
     double sTime;
-    int denominator;
+    double denominator;
 
 };
 
@@ -38,7 +38,8 @@ int main( )
     std::fstream fileStream;
     std::vector<TimingData> averagedData;
     TimingData tmpData;
-
+    size_t index;
+    bool exists;
 
     std::cout << "Please enter the file path: ";
 
@@ -66,12 +67,45 @@ int main( )
     // process the buffer
     while( ( strStream >> tmpData.type ) )
     {
+
         strStream >> tmpData.buckets;
         strStream >> tmpData.numberOfIntegers;
         strStream >> tmpData.sTime;
         tmpData.denominator = 1;
 
-        
+        exists = false;
+
+        for( index = 0; index < averagedData.size( ); index++ )
+        {
+            if( averagedData[ index ].type == tmpData.type
+                && averagedData[ index ].buckets == tmpData.buckets
+                && averagedData[ index ] == tmpData.numberOfIntegers )
+            {
+                exists = true;
+
+                averagedData[ index ].sTime += tmpData.sTime;
+                averagedData[ index ].denominator += tmpData.denominator;
+
+            }
+        }
+
+        if( !exists )
+        {
+            averagedData.resize( averagedData.size( ) + 1 );
+            averagedData.back( ).type = tmpData.type;
+            averagedData.back( ).buckets = tmpData.buckets;
+            averagedData.back( ).numberOfIntegers = tmpData.numberOfIntegers;
+            averagedData.back( ).sTime = averagedData.sTime;
+            averagedData.back( ).denominator = averagedData.denominator;
+            exists = true;
+        }
+    }
+
+
+    for( index = 0; index < averagedData.size( ); index++ )
+    {
+        std::cout << averagedData[ index ].type << "/t" << averagedData[ index ].buckets << "/t" << averagedData[ index ].numberOfIntegers;
+        std::cout << "/t" << ( averagedData[ index ].sTime / averagedData[ index ].denominator ) << std::endl;
     }
 
 
