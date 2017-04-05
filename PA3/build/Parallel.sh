@@ -13,7 +13,7 @@ fi
 
 #SBATCH -n 2
 #SBATCH --mem=16384
-#SBATCH --time=00:06:00
+#SBATCH --time=00:10:00
 #SBATCH -o ../bin/parallel-%j.out
 
 srun Parallel "$file" "$save"

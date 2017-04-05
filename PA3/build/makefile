@@ -1,6 +1,6 @@
 CC=mpic++ -std=c++0x
 CXXFLAGS= -O2 -Wall
-LIBS=$(shell mpicc --showme:link)#-lpmi
+LIBS=-lpmi
 
 SRCDIR = ../src
 S_OBJ_FILES= Sequential.o Timer.o
