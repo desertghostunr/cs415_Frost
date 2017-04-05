@@ -113,7 +113,10 @@ namespace tSort
         {
             if( buckets[ index ].size( ) > 1 )
             {
-                insertionSort( buckets[ index ] );    
+                //insertionSort( buckets[ index ] );    
+                std::make_heap(buckets[index].begin( ), buckets[index].end( ) );
+                std::sort_heap(buckets[index].begin( ), buckets[index].end( ) );
+
             }
         }        
 
@@ -209,7 +212,10 @@ namespace tSort
         //sort my bucket
         if( buckets[ bucketID ].size( ) > 1 )
         {
-            insertionSort( buckets[ bucketID ] );
+            // insertionSort( buckets[ bucketID ] );
+            std::make_heap(buckets[bucketID].begin( ), buckets[bucketID].end( ));
+            std::sort_heap(buckets[bucketID].begin( ), buckets[bucketID].end( ) );
+
         }
         
         data.resize( 0 );
