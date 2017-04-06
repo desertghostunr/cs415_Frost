@@ -28,22 +28,28 @@ cd build
 make
 ```
 
+All programs must be ran from the build directory.
+
 All of the parameters to the scripts can be replaced with other values to test.
 The parameters work as follows:
 
-sbatch Sequential.sh [name of data file] [number of buckets]
+sbatch Sequential.sh [number of integers] [number of buckets] [save option: 1 to save, anything else to not ]
+sbatch Parallel.sh [number of integers] [save option: 1 to save, anything else to not ]
 
 To run the sequential algorithm use the following command:
 ```bash
-sbatch Sequential.sh ../bin/data.txt
+sbatch Sequential.sh 1000
 ```
 
-To run one set of timing tests do the following:
+To run the parallel algorithm use the following command:
+```bash
+sbatch Parallel.sh 1000
+```
+
+To run a set of timing tests do the following:
 ```bash
 chmod +x RunTests.sh
 ./RunTests.sh
-chmod +x GradTests.sh
-./GradTests.sh
 ```
 
 ### Makefile Instructions
