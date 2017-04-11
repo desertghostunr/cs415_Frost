@@ -359,6 +359,55 @@ namespace tMath
                 return trans;
             }
 
+            /*
+            @brief: getRow
+
+            @details: copies the row into destRow
+
+            @param: row: the row to copy
+
+            @param: destRow: the row to copy into to
+            */
+            bool getRow( size_t row, std::vector<Type> & destRow )
+            {
+                if( row >= m_rows )
+                {
+                    return false;
+                }
+
+                destRow = m_data[ row ];
+
+                return true;
+            }
+
+            /*
+            @brief: getCol
+
+            @details: copies the col into destCol
+
+            @param: col: the col to copy
+
+            @param: colRow: the col to copy into to
+            */
+            bool getCol( size_t col, std::vector<Type> & destCol )
+            {
+                size_t index;
+
+                if( col >= m_cols )
+                {
+                    return false;
+                }
+
+                destCol.resize( m_rows );
+
+                for( index = 0; index < m_cols; index++ )
+                {
+                    destCol[ index ] = m_data[ index ][ col ];
+                }
+
+                return true;
+            }
+
 
             //modifiers
              /*

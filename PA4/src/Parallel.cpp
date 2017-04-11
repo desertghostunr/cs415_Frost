@@ -2,13 +2,13 @@
 
 @file Parallel.cpp
 
-@brief the code for the parallel bucket sorting program for PA3
+@brief Parallel Matrix Multiplication
 
-@description Runs bucket sort in parallel on a set of numbers read from file
+@description multiplies matrices using Canon's Algorithm
 
 @author Andrew Frost
 
-@version 1.00 ( 04/01/2017 )
+@version 1.00 ( 04/11/2017 )
 
 @note None
 
@@ -23,7 +23,8 @@
 #include <cmath>
 #include "mpi.h"
 #include "Timer.h"
-#include "tSort.h"
+#include "tMath.h"
+#include "tMatrix.h"
 
 // pre-compiler directives /////////////////////////////////////
 #define SAVE_FLAG 1
@@ -31,7 +32,7 @@
 #define SEND_DATA 201
 #define KILL_SWITCH -100
 #define SEED 100102330
-#define UPPER_BOUND 100000
+#define UPPER_BOUND 10
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -39,15 +40,15 @@ int main( int argc, char *argv[ ] )
     //vars
     unsigned long long sTime = 0ll, eTime = 0ll;
     double finalTime;
-    std::vector< int > data, tmpData;
-    std::vector< std::vector< int > > buckets;
-    int tmpInt, amntOfData, saveFlag = 0, maxBucketSize = 100000000;
-    int minMax[2];
-    int index, dIndex, rmndr;
+    std::vector< int > rData, cData;
+    int tmpInt, saveFlag = 0;
+    size_t index, rIndex, tIndex;
     std::stringstream strStream;
-    size_t numberOfValues;
+    size_t numberOfValues, matrixDivider, matrixDim;
 
     int numberOfTasks, taskID;    
+
+    tMath::tMatrix< int > matA, matB, matC;
 
     MPI_Status status;    
     
@@ -58,13 +59,52 @@ int main( int argc, char *argv[ ] )
     //cmd line params error checking
     if( argc < 2 )
     {
-        std::cout << "The program must be ran with the following:" <<std::endl;
-        std::cout << "srun n16 Parallel [number of ints]" <<std::endl;
+        std::cout << "Error: The program must be ran with the following:" <<std::endl;
+        std::cout << "srun n16 Parallel [matrix dimension: integer] [save flag: 1 to save]" <<std::endl;
     }
 
     if( numberOfTasks < 2 )
     {
-        std::cout<<"Not enough tasks to run."<<std::endl;
+        std::cout<<"Error: Not enough tasks to run."<<std::endl;
+        MPI_Finalize( );
+        return -1;
+    }
+
+    matrixDivider = static_cast< size_t >( std::sqrt( numberOfTasks ) );
+
+    if( matrixDivider == 0 )
+    {
+        std::cout << "Error: Invalid number of tasks: " << numberOfTasks << "." << std::endl;
+        std::cout << "The number of tasks must not have a zero (when truncated) square root." << std::endl;
+        MPI_Finalize( );
+        return -1;
+    }
+
+    if( ( matrixDivider * matrixDivider ) != static_cast< size_t >( numberOfTasks ) ) //square cores only
+    {
+        std::cout << "Error: Invalid number of tasks: " << numberOfTasks << "." << std::endl;
+        std::cout << "The number of tasks must have an integer square root." << std::endl;
+        MPI_Finalize( );
+        return -1;
+    }
+
+    //get number of values for each dimension of the matrix
+    strStream.str( std::string( "" ) );
+    strStream.clear( );
+    strStream.str( argv[ 1 ] );
+
+    if( !( strStream >> numberOfValues ) ) //if error then end program
+    {
+        std::cout << "Error: invalid dimension from node " << taskID << std::endl;
+
+        MPI_Finalize( );
+        return -1;
+    }
+
+    if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+    {
+        std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+
         MPI_Finalize( );
         return -1;
     }
@@ -80,160 +120,31 @@ int main( int argc, char *argv[ ] )
         strStream >> saveFlag;
     }
 
-    //master
-    if( taskID == 0 )
-    {
-        strStream.str( std::string( "" ) );
-        strStream.clear( );
-        strStream.str(argv[ 1 ]);  
-
-        if( !( strStream >> numberOfValues ) ) //if error then end program
-        {
-            std::cout << "Error: invalid number of integers." << std::endl;
-
-            for( index = 1; index < numberOfTasks; index++ )
-            {
-                amntOfData = KILL_SWITCH;
-
-                MPI_Send( &amntOfData, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD ); //send KILL_SWITCH due to error     
-            }
-
-            MPI_Barrier( MPI_COMM_WORLD );
-            MPI_Finalize();
-            return -1;
-        }
-
-        //generate data
-        tSort::generateData( SEED, numberOfValues, UPPER_BOUND, tmpData );
-
-        data.resize( static_cast<int> ( numberOfValues ) / numberOfTasks, 0 );
-
-        //check if the data is divided even by the number of processes
-        
-        rmndr = amntOfData = static_cast<int> ( numberOfValues );
+    //allocate memory
+    matrixDim = numberOfValues / matrixDivider;
     
-        minMax[ 1 ] = -1 * std::numeric_limits<int>::infinity( );
-        minMax[ 0 ] = std::numeric_limits<int>::infinity( );
+    matA.resize( matrixDim, matrixDim );
 
-        if( saveFlag == SAVE_FLAG )
-        {
-            std::cout << "Unsorted Data: " << std::endl;
-            std::cout << amntOfData << std::endl;
-        }
+    tMath::MakeMatrix( matA, matrixDim * ( taskID / matrixDivider ), matrixDim * ( taskID % matrixDivider ) );
 
-        //copy data and send it to the slaves
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            for( dIndex = 0; dIndex < static_cast<int>( data.size( ) ); dIndex++ )
-            {
-                tmpInt = tmpData.back( );
-                tmpData.pop_back( );
+    matB = matA;
 
-                if( tmpInt < minMax[ 0 ] )
-                {
-                    minMax[ 0 ] = tmpInt;
-                }
+    matC.resize( matrixDim, matrixDim );
 
-                if( tmpInt > minMax[ 1 ] )
-                {
-                    minMax[ 1 ] = tmpInt;
-                }
+    tMath::ZeroMatrix( matC );
 
-                data[ dIndex ] = tmpInt;
-
-                if( saveFlag == SAVE_FLAG )
-                {
-                    std::cout << tmpInt << std::endl;
-                }
-
-                rmndr--;
-            }
-
-            MPI_Send( &amntOfData, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD ); //send amntOfData
-            MPI_Send( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, index, SEND_DATA, MPI_COMM_WORLD ); //send data          
-        }
-
-        maxBucketSize = std::max( rmndr, amntOfData / numberOfTasks );        
-
-        data.resize( rmndr ); //resize for any remainder
-
-        //copy data for master
-        for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
-        {
-            tmpInt = tmpData.back( );
-            tmpData.pop_back( );
-
-            if( tmpInt < minMax[ 0 ] )
-            {
-                minMax[ 0 ] = tmpInt;
-            }
-
-            if( tmpInt > minMax[ 1 ] )
-            {
-                minMax[ 1 ] = tmpInt;
-            }
-
-            data[ index ] = tmpInt;
-
-            if( saveFlag == SAVE_FLAG )
-            {
-                std::cout << tmpInt << std::endl;
-            }
-
-            rmndr--;
-        }
-
-        tmpData.clear( );
-
-        if( saveFlag == SAVE_FLAG )
-        {
-            std::cout << std::endl;
-        }
-
-        //send the min and the max to each slave
-        for( index = 1; index < numberOfTasks; index++ )
-        {
-            MPI_Send( &minMax[ 0 ], 2, MPI_INT, index, SEND_DATA + 2, MPI_COMM_WORLD );
-            MPI_Send( &maxBucketSize, 1, MPI_INT, index, SEND_DATA + 3, MPI_COMM_WORLD );
-        }
-    }
-    else //slaves, get data for each slave
-    {
-        MPI_Recv( &amntOfData, 1, MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status ); //get total amntOfData
-
-        if( amntOfData == KILL_SWITCH )
-        {
-            MPI_Barrier( MPI_COMM_WORLD );
-            MPI_Finalize();
-            return -1;
-        }
-
-        data.resize( amntOfData / numberOfTasks, 0 ); //alloc for data
-        MPI_Recv( &data[ 0 ], static_cast<int>( data.size( ) ), MPI_INT, 0, SEND_DATA, MPI_COMM_WORLD, &status ); //get data
-
-        MPI_Recv( &minMax[ 0 ], 2, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status ); //get min and max
-        MPI_Recv( &maxBucketSize, 1, MPI_INT, 0, SEND_DATA + 3, MPI_COMM_WORLD, &status ); //get max bucket size
-    }
-
-    //allocate the buckets for each processs
-    //resize for the number of buckets
-    buckets.resize( numberOfTasks );
-
-    for( index = 0; index < numberOfTasks; index++ )
-    {
-        buckets[ index ].reserve( (amntOfData / numberOfTasks ) + 1 );
-    }
     
     //wait for all processes to be ready
     MPI_Barrier( MPI_COMM_WORLD );
 
-    //sort the data
+    //grab the time
     if( taskID == 0 )
     {
         sTime = GetCurrentMicroSecTime( );
     }    
 
-    tSort::pBucket( data, buckets, numberOfTasks, taskID, minMax[ 0 ], minMax[ 1 ], maxBucketSize );
+    //multiply the matrices using canon's algorithm
+    
 
     MPI_Barrier( MPI_COMM_WORLD );
 
@@ -250,13 +161,18 @@ int main( int argc, char *argv[ ] )
 
         if( taskID == 0 )
         {
-            std::cout << "Sorted Data: " << std::endl;
+            std::cout << "Mat A:" << std::endl;            
 
-            std::cout << amntOfData << std::endl;
-            //write out master
-            for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
+            //write out matrix
+            for( index = 0; index < matrixDim; index++ )
             {
-                std::cout << data[ index ] << std::endl;
+                matA.getRow( index, rData ); //write out master
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    std::cout << rData[ rIndex ] << "\t";
+                }
+
+                
             }
 
             for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )

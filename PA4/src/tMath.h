@@ -96,6 +96,32 @@ namespace tMath
         }
     }
 
+    /*
+    @brief: MakeMatrix
+
+    @details: fills a pre-allocated matrix with data based off of a logical offset
+
+    @param: mat: the matrix to fill
+
+    @param: rOffset: the logical offset in rows
+
+    @param: cOffset: the logical offset in columns
+    */
+    template<typename Type>
+    void MakeMatrix( tMatrix<Type> & mat, size_t rOffset, size_t cOffset )
+    {
+        size_t row, col;
+
+        //matrix filling
+        for( row = 0; row < mat.rows( ); row++ )
+        {
+            for( col = 0; col < mat.cols( ); col++ )
+            {
+                mat( row, col ) = rOffset + cOffset + row + col + 1;
+            }
+        }
+    }
+
      /*
     @brief: ZeroMatrix
 

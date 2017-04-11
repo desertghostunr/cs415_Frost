@@ -4,7 +4,7 @@
 
 @brief the code for the sequential matrix multiplication for PA3
 
-@description Sequentially runs bucket sort on a set of numbers read from file
+@description Sequentially multiplies matrices
 
 @author Andrew Frost
 
