@@ -4,7 +4,7 @@
 
 @brief Parallel Matrix Multiplication
 
-@description multiplies matrices using Canon's Algorithm
+@description multiplies matrices using Cannon's Algorithm
 
 @author Andrew Frost
 
@@ -46,7 +46,7 @@ int main( int argc, char *argv[ ] )
     std::stringstream strStream;
     size_t numberOfValues, matrixDivider, matrixDim;
 
-    int numberOfTasks, taskID;    
+    int numberOfTasks, taskID, tmpID;    
 
     tMath::tMatrix< int > matA, matB, matC;
 
@@ -143,9 +143,10 @@ int main( int argc, char *argv[ ] )
         sTime = GetCurrentMicroSecTime( );
     }    
 
-    //multiply the matrices using canon's algorithm
+    //multiply the matrices using cannon's algorithm
     
-
+    
+    //make sure everyone is done
     MPI_Barrier( MPI_COMM_WORLD );
 
     if( taskID == 0 )
@@ -172,30 +173,129 @@ int main( int argc, char *argv[ ] )
                     std::cout << rData[ rIndex ] << "\t";
                 }
 
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim );
+
+                    if( tmpID != 0 )
+                    {
+                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            std::cout << rData[ rIndex ] << "\t";
+                        }
+                    }
+                }
+
+                std::cout << std::endl;
                 
             }
 
-            for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
-            {
-                MPI_Recv( &index, 1, MPI_INT, tmpInt, SAVE_CODE - 1, MPI_COMM_WORLD, &status ); //get number of pieces of data
-                data.resize( index ); //resize for data
-                MPI_Recv( &data[ 0 ], index, MPI_INT, tmpInt, SAVE_CODE - 2, MPI_COMM_WORLD, &status ); //receive data
+            std::cout << std::endl;
 
-                //write out data
-                for( index = 0; index < static_cast<int>( data.size( ) ); index++ )
+            std::cout << "Mat B:" << std::endl;            
+
+            //write out matrix
+            for( index = 0; index < matrixDim; index++ )
+            {
+                matB.getRow( index, rData ); //write out master
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
                 {
-                    std::cout << data[ index ] << std::endl;
+                    std::cout << rData[ rIndex ] << "\t";
                 }
 
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim );
+
+                    if( tmpID != 0 )
+                    {
+                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
+
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            std::cout << rData[ rIndex ] << "\t";
+                        }
+                    }
+                }
+
+                std::cout << std::endl;
+                
+            }
+
+            std::cout << std::endl;
+
+
+            std::cout << "Mat C:" << std::endl;            
+
+            //write out matrix
+            for( index = 0; index < matrixDim; index++ )
+            {
+                matC.getRow( index, rData ); //write out master
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    std::cout << rData[ rIndex ] << "\t";
+                }
+
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim );
+
+                    if( tmpID != 0 )
+                    {
+                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 3, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
+
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            std::cout << rData[ rIndex ] << "\t";
+                        }
+                    }
+                }
+
+                std::cout << std::endl;
+                
             }
 
             std::cout << std::endl;
         } 
         else
         {
-            index = static_cast<int>( data.size( ) ); 
-            MPI_Send( &index, 1, MPI_INT, 0, SAVE_CODE - 1, MPI_COMM_WORLD ); //send the size
-            MPI_Send( &data[0], index, MPI_INT, 0, SAVE_CODE - 2, MPI_COMM_WORLD ); //send the data
+            //A
+            for( index = 0; index < matrixDim; index++ )
+            {
+                matA.getRow( index, rData );
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                    MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 1, MPI_COMM_WORLD );
+                }
+            }
+
+            //B
+            for( index = 0; index < matrixDim; index++ )
+            {
+                matB.getRow( index, rData );
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+                    MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 2, MPI_COMM_WORLD );
+                }
+            }
+
+            //C
+            for( index = 0; index < matrixDim; index++ )
+            {
+                matC.getRow( index, rData );
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
+                    MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 3, MPI_COMM_WORLD );
+                }
+            }
         }
         
     }    
