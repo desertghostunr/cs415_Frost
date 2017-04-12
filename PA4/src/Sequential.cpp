@@ -22,7 +22,7 @@
 #include <string>
 #include <cmath>
 #include <algorithm>
-#include <limits>
+#include <fstream>
 #include "Timer.h"
 #include "tMath.h"
 #include "tMatrix.h"
@@ -43,11 +43,17 @@ int main( int argc, char *argv[ ] )
 
     tMath::tMatrix< int > matA, matB, matC;
 
+    std::string fileA, fileB;
+
+    std::fstream fileStream;
+
     //cmd line params
     if( argc < 2 )
     {
         std::cout << "The program must be ran with the following:" <<std::endl;
         std::cout << "./Sequential [matrix size]" <<std::endl;
+        std::cout << "OR as" << std::endl;
+        std::cout << "./Sequential [matrix A file] [matrix B file]" << std::endl;
         return -1;
     }
 
@@ -56,32 +62,107 @@ int main( int argc, char *argv[ ] )
     //process the data
     if( !( strStream >> numberOfValues ) )
     {
-        std::cout << "Error: Invalid matrix size!" << std::endl;
-        return -1;
-    }
-
-    //generate matrices
-    matA.resize( numberOfValues, numberOfValues );
-    matC.resize( numberOfValues, numberOfValues );
-
-    tMath::MakeMatrix( matA );
-
-    matB = matA.transpose( );
-
-    tMath::ZeroMatrix( matC );
-
-    //print current data if requested
-    tmpInt = -1;
-    
-    if( argc > 2 )
-    {
         strStream.str( std::string( "" ) );
         strStream.clear( );
 
-        strStream.str( argv[ 2 ] );
+        fileA = argv[ 1 ];
 
-        strStream >> tmpInt;
+        if( argc < 2 )
+        {
+            std::cout << "Error: Not enough parameters. Only one filename given." << std::endl;
+            return -1;
+        }
+
+        fileB = argv[ 2 ];
+
+        //print current data if requested
+        tmpInt = -1;
+
+        if( argc > 3 )
+        {
+            strStream.str( std::string( "" ) );
+            strStream.clear( );
+
+            strStream.str( argv[ 3 ] );
+
+            strStream >> tmpInt;
+        }
+
+        //open the files
+        fileStream.open( fileA.c_str( ) );
+
+        if( !fileStream.is_open( ) )
+        {
+            std::cout << "Error: Could not open " << fileA << std::endl;
+            return -1;
+        }
+
+        fileStream >> numberOfValues;
+
+        matA.resize( numberOfValues, numberOfValues );
+
+        if( !tMath::FillMatrixFromFile( matA, fileStream ) )
+        {
+            std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+            return -1;
+        }
+
+        fileStream.close( );
+
+        fileStream.clear( );
+
+        fileStream.open( fileB.c_str( ) );
+
+        if( !fileStream.is_open( ) )
+        {
+            std::cout << "Error: Could not open " << fileB << std::endl;
+            return -1;
+        }
+
+        fileStream >> numberOfValues;
+
+        matB.resize( numberOfValues, numberOfValues );
+
+        if( !tMath::FillMatrixFromFile( matB, fileStream ) )
+        {
+            std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+            return -1;
+        }
+
+        fileStream.close( );
+
+        fileStream.clear( );
+
+        matC.resize( numberOfValues, numberOfValues );
+
     }
+    else
+    {
+        //print current data if requested
+        tmpInt = -1;
+
+        if( argc > 2 )
+        {
+            strStream.str( std::string( "" ) );
+            strStream.clear( );
+
+            strStream.str( argv[ 2 ] );
+
+            strStream >> tmpInt;
+        }
+
+        //generate matrices
+        matA.resize( numberOfValues, numberOfValues );
+        matC.resize( numberOfValues, numberOfValues );
+
+        tMath::MakeMatrix( matA );
+
+        matB = matA;
+    }
+
+    
+    //zero out c
+    tMath::ZeroMatrix( matC );   
 
     
 

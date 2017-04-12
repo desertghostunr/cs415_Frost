@@ -21,6 +21,8 @@
 #include <string>
 #include <sstream>
 #include <cmath>
+#include <algorithm>
+#include <fstream>
 #include "mpi.h"
 #include "Timer.h"
 #include "tMath.h"
@@ -50,22 +52,29 @@ int main( int argc, char *argv[ ] )
 
     tMath::tMatrix< int > matA, matB, matC;
 
+    std::string fileA, fileB;
+
+    std::fstream fileStream;
+
     MPI_Status status;    
     
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
     MPI_Comm_rank( MPI_COMM_WORLD, &taskID );
 
-    //cmd line params error checking
+    //cmd line params
     if( argc < 2 )
     {
-        std::cout << "Error: The program must be ran with the following:" <<std::endl;
-        std::cout << "srun n16 Parallel [matrix dimension: integer] [save flag: 1 to save]" <<std::endl;
+        std::cout << "The program must be ran with the following:" << std::endl;
+        std::cout << "srun n16 Parallel [matrix size]" << std::endl;
+        std::cout << "OR as" << std::endl;
+        std::cout << "srun n16 Parallel [matrix A file] [matrix B file]" << std::endl;
+        return -1;
     }
 
     if( numberOfTasks < 2 )
     {
-        std::cout<<"Error: Not enough tasks to run."<<std::endl;
+        std::cout << "Error: Not enough tasks to run." << std::endl;
         MPI_Finalize( );
         return -1;
     }
@@ -88,49 +97,223 @@ int main( int argc, char *argv[ ] )
         return -1;
     }
 
-    //get number of values for each dimension of the matrix
-    strStream.str( std::string( "" ) );
-    strStream.clear( );
     strStream.str( argv[ 1 ] );
 
-    if( !( strStream >> numberOfValues ) ) //if error then end program
-    {
-        std::cout << "Error: invalid dimension from node " << taskID << std::endl;
-
-        MPI_Finalize( );
-        return -1;
-    }
-
-    if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
-    {
-        std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
-
-        MPI_Finalize( );
-        return -1;
-    }
-
-    //get whether or not to save ////////////////////////////////////////////
-    if( argc > 2 )
+    //process the data
+    if( !( strStream >> numberOfValues ) )
     {
         strStream.str( std::string( "" ) );
         strStream.clear( );
 
-        strStream.str( argv[ 2 ] );
+        fileA = argv[ 1 ];
 
-        strStream >> saveFlag;
+        if( argc < 2 )
+        {
+            std::cout << "Error: Not enough parameters. Only one filename given." << std::endl;
+            return -1;
+        }
+
+        fileB = argv[ 2 ];
+
+        //print current data if requested
+        saveFlag = -1;
+
+        if( argc > 3 )
+        {
+            strStream.str( std::string( "" ) );
+            strStream.clear( );
+
+            strStream.str( argv[ 3 ] );
+
+            strStream >> saveFlag;
+        }
+
+        //to do fix opening the files
+        //open the files
+        if( taskID == 0 )
+        {
+            fileStream.open( fileA.c_str( ) );
+
+            if( !fileStream.is_open( ) )
+            {
+                std::cout << "Error: Could not open " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream >> numberOfValues;
+
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                fileStream.close( );
+                MPI_Finalize( );
+                return -1;
+            }
+
+            //fill matrices
+            matrixDim = numberOfValues / matrixDivider;
+
+            matA.resize( matrixDim, matrixDim );
+
+            if( !tMath::FillMatrixFromFile( matA, fileStream ) )
+            {
+                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream.close( );
+
+            fileStream.clear( );
+
+            fileStream.open( fileB.c_str( ) );
+
+            if( !fileStream.is_open( ) )
+            {
+                std::cout << "Error: Could not open " << fileB << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream >> numberOfValues;
+
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                fileStream.close( );
+                MPI_Finalize( );
+                return -1;
+            }
+
+            matrixDim = numberOfValues / matrixDivider;
+
+            matB.resize( matrixDim, matrixDim );
+
+            if( !tMath::FillMatrixFromFile( matB, fileStream ) )
+            {
+                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream.close( );
+
+            fileStream.clear( );
+
+            matC.resize( matrixDim, matrixDim );
+        }
+        else
+        {
+            fileStream.open( fileA.c_str( ) );
+
+            if( !fileStream.is_open( ) )
+            {
+                std::cout << "Error: Could not open " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream >> numberOfValues;
+
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                fileStream.close( );
+                MPI_Finalize( );
+                return -1;
+            }
+
+            //fill matrices
+            matrixDim = numberOfValues / matrixDivider;
+
+            matA.resize( matrixDim, matrixDim );
+
+            if( !tMath::FillMatrixFromFile( matA, fileStream ) )
+            {
+                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream.close( );
+
+            fileStream.clear( );
+
+            fileStream.open( fileB.c_str( ) );
+
+            if( !fileStream.is_open( ) )
+            {
+                std::cout << "Error: Could not open " << fileB << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream >> numberOfValues;
+
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                fileStream.close( );
+                MPI_Finalize( );
+                return -1;
+            }
+
+            matrixDim = numberOfValues / matrixDivider;
+
+            matB.resize( matrixDim, matrixDim );
+
+            if( !tMath::FillMatrixFromFile( matB, fileStream ) )
+            {
+                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            fileStream.close( );
+
+            fileStream.clear( );
+
+            matC.resize( matrixDim, matrixDim );
+        }
+        
+
+    }
+    else
+    {
+        //print current data if requested
+        saveFlag = -1;
+
+        if( argc > 2 )
+        {
+            strStream.str( std::string( "" ) );
+            strStream.clear( );
+
+            strStream.str( argv[ 2 ] );
+
+            strStream >> saveFlag;
+        }
+
+        if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+        {
+            std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+
+            MPI_Finalize( );
+            return -1;
+        }
+
+        matrixDim = numberOfValues / matrixDivider;
+
+        //generate matrices
+        matA.resize( matrixDim, matrixDim );
+        matC.resize( matrixDim, matrixDim );
+
+        tMath::MakeMatrix( matA, matrixDim * ( taskID / matrixDivider ), matrixDim * ( taskID % matrixDivider ) );
+
+        matB = matA;
     }
 
-    //allocate memory
-    matrixDim = numberOfValues / matrixDivider;
-    
-    matA.resize( matrixDim, matrixDim );
-
-    tMath::MakeMatrix( matA, matrixDim * ( taskID / matrixDivider ), matrixDim * ( taskID % matrixDivider ) );
-
-    matB = matA;
-
-    matC.resize( matrixDim, matrixDim );
-
+    //zero out c
     tMath::ZeroMatrix( matC );
 
     

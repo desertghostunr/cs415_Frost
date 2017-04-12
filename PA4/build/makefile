@@ -28,4 +28,4 @@ Timer.o: $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Timer.cpp
 
 clean:
-	\rm *.o Sequential Parallel
+	\rm *.o Sequential #Parallel

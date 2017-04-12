@@ -23,6 +23,7 @@
 #include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
 #include "tMatrix.h"
 #include "mpi.h"
 
@@ -165,6 +166,36 @@ namespace tMath
             }
             std::cout << std::endl;
         }
+    }
+
+
+    /*
+    @brief: PrintMatrix
+
+    @details: prints out a matrix
+
+    @param: mat: the matrix to print
+    */
+    template<typename Type>
+    bool FillMatrixFromFile( tMatrix<Type> & mat, std::fstream & fileStream )
+    {
+        size_t row, col;
+
+        //matrix filling
+        for( row = 0; row < mat.rows( ); row++ )
+        {
+            for( col = 0; col < mat.cols( ); col++ )
+            {
+                if( fileStream.bad( ) )
+                {
+                    return false;
+                }
+
+                fileStream >> mat( row, col );               
+            }
+        }
+
+        return true;
     }
 
 
