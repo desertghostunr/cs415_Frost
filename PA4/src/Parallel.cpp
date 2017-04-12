@@ -205,16 +205,7 @@ int main( int argc, char *argv[ ] )
         }
         else
         {
-            fileStream.open( fileA.c_str( ) );
-
-            if( !fileStream.is_open( ) )
-            {
-                std::cout << "Error: Could not open " << fileA << std::endl;
-                MPI_Finalize( );
-                return -1;
-            }
-
-            fileStream >> numberOfValues;
+            
 
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
             {

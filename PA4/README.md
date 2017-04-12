@@ -1,4 +1,4 @@
-# PA4: "?"
+# PA4: "Matrix Multiplication"
 
 # Author 
 Andrew Frost
@@ -19,7 +19,6 @@ ssh username@h1.cse.unr.edu
 Build this project using the provided makefile.
 
 # Quick running
-
 The program must be build in the build directory.
 
 You may build the project with a command.
@@ -33,18 +32,21 @@ All programs must be ran from the build directory.
 All of the parameters to the scripts can be replaced with other values to test.
 The parameters work as follows:
 
-sbatch Sequential.sh [number of integers] [number of buckets] [save option: 1 to save, anything else to not ]
-sbatch Parallel.sh [number of integers] [save option: 1 to save, anything else to not ]
+sbatch Sequential.sh [n: matrix dimensions] [save option: 1 to save, anything else to not save ]
+
+sbatch Sequential.sh [mat A file] [mat B file] [save option: 1 to save, anything else to not save ]
 
 To run the sequential algorithm use the following command:
 ```bash
-sbatch Sequential.sh 1000
+sbatch Sequential.sh 3
 ```
 
-To run the parallel algorithm use the following command:
+or
+
 ```bash
-sbatch Parallel.sh 1000
+sbatch Sequential.sh ../bin/matA.txt ../bin/matB.txt
 ```
+
 
 To run a set of timing tests do the following:
 ```bash
