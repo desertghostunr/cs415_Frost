@@ -438,6 +438,8 @@ int main( int argc, char *argv[ ] )
         } 
         else
         {
+            MPI_Barrier( MPI_COMM_WORLD );
+
             //A
             for( index = 0; index < matrixDim; index++ )
             {
