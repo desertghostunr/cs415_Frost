@@ -42,11 +42,11 @@ int main( int argc, char *argv[ ] )
     //vars
     unsigned long long sTime = 0ll, eTime = 0ll;
     double finalTime;
-    std::vector< int > rData, cData;
+    std::vector< int > rData, sData;
     int tmpInt, saveFlag = 0;
     size_t index, rIndex, tIndex;
     std::stringstream strStream;
-    size_t numberOfValues, matrixDivider, matrixDim;
+    size_t numberOfValues, matrixDivider, matrixDim, row, col;
 
     int numberOfTasks, taskID, tmpID;    
 
@@ -151,17 +151,43 @@ int main( int argc, char *argv[ ] )
                 return -1;
             }
 
+            for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
+            {
+                MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA - 1, MPI_COMM_WORLD );
+            }
+
             //fill matrices
-            matrixDim = numberOfValues / matrixDivider;
+            matrixDim = numberOfValues / matrixDivider;            
 
             matA.resize( matrixDim, matrixDim );
 
-            if( !tMath::FillMatrixFromFile( matA, fileStream ) )
+            rData.resize( matrixDim );
+
+            for( index = 0; index < matrixDim; index++ )
             {
-                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
-                MPI_Finalize( );
-                return -1;
+                
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    fileStream >> matA( index, rIndex );
+                }
+
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim );
+
+                    if( tmpID != 0 )
+                    {
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            fileStream >> rData[ rIndex ];
+                        }
+
+                        MPI_Send( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                    }
+                }
+                
             }
+
 
             fileStream.close( );
 
@@ -190,11 +216,28 @@ int main( int argc, char *argv[ ] )
 
             matB.resize( matrixDim, matrixDim );
 
-            if( !tMath::FillMatrixFromFile( matB, fileStream ) )
+            for( index = 0; index < matrixDim; index++ )
             {
-                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
-                MPI_Finalize( );
-                return -1;
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    fileStream >> matB( index, rIndex );
+                }
+
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim );
+
+                    if( tmpID != 0 )
+                    {
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            fileStream >> rData[ rIndex ];
+                        }
+
+                        MPI_Send( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                    }
+                }
+                
             }
 
             fileStream.close( );
@@ -205,65 +248,47 @@ int main( int argc, char *argv[ ] )
         }
         else
         {
-            
-
-            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
-            {
-                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
-                fileStream.close( );
-                MPI_Finalize( );
-                return -1;
-            }
+            MPI_Recv( &numberOfValues, 1, MPI_INT, 0, SEND_DATA - 1, MPI_COMM_WORLD, &status );
 
             //fill matrices
             matrixDim = numberOfValues / matrixDivider;
 
             matA.resize( matrixDim, matrixDim );
 
-            if( !tMath::FillMatrixFromFile( matA, fileStream ) )
+            rData.resize( matrixDim );
+
+            for( index = 0; index < matrixDim; index++ )
             {
-                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
-                MPI_Finalize( );
-                return -1;
+                
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    MPI_Recv( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status  );
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        matA( tmpInt, rIndex ) = rData[ rIndex ];
+                    }
+                }
             }
 
-            fileStream.close( );
 
-            fileStream.clear( );
+            MPI_Recv( &numberOfValues, 1, MPI_INT, 0, SEND_DATA - 1, MPI_COMM_WORLD, &status );
 
-            fileStream.open( fileB.c_str( ) );
-
-            if( !fileStream.is_open( ) )
+            for( index = 0; index < matrixDim; index++ )
             {
-                std::cout << "Error: Could not open " << fileB << std::endl;
-                MPI_Finalize( );
-                return -1;
-            }
-
-            fileStream >> numberOfValues;
-
-            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
-            {
-                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
-                fileStream.close( );
-                MPI_Finalize( );
-                return -1;
+                
+                for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
+                {
+                    MPI_Recv( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status  );
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        matB( tmpInt, rIndex ) = rData[ rIndex ];
+                    }
+                }
             }
 
             matrixDim = numberOfValues / matrixDivider;
 
             matB.resize( matrixDim, matrixDim );
-
-            if( !tMath::FillMatrixFromFile( matB, fileStream ) )
-            {
-                std::cout << "Error: Bad contents encountered in " << fileA << std::endl;
-                MPI_Finalize( );
-                return -1;
-            }
-
-            fileStream.close( );
-
-            fileStream.clear( );
 
             matC.resize( matrixDim, matrixDim );
         }
@@ -318,6 +343,14 @@ int main( int argc, char *argv[ ] )
     }    
 
     //multiply the matrices using cannon's algorithm
+    //initialization
+    /*matA.copyToVector( sData );
+    MPI_Send( &sData[ 0 ], sData.size( ), MPI_INT, 
+
+    matB.copyToVector( sData );
+
+
+    //repeated multiplication*/
     
     
     //make sure everyone is done
@@ -354,7 +387,7 @@ int main( int argc, char *argv[ ] )
                     if( tmpID != 0 )
                     {
                         MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
 
                         for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
                         {
@@ -387,7 +420,7 @@ int main( int argc, char *argv[ ] )
                     if( tmpID != 0 )
                     {
                         MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), tmpID, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
 
                         for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
                         {

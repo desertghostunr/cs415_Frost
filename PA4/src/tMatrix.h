@@ -7,7 +7,7 @@
 
 @description templated matrix class
 
-@author Andrew Frost
+@author 
 
 @version 1.00 ( 04/07/2017 )
 

@@ -6,7 +6,7 @@
 
 @description templated functions for generating numbers and other mathematical operations
 
-@author Andrew Frost
+@author 
 
 @version 1.00 ( 04/07/2017 )
 
@@ -33,49 +33,6 @@ namespace tMath
     //type defs
 
     // templated function declarations ///////////////////////
-
-
-    /*
-    @brief: MultiplyMatricesCannon
-
-    @details: multiplies A and B together and stores the result in C
-
-    @param: taskID: the id of the task
-
-    @param: logicalRow: the logical row of the submatrix within the matrix
-
-    @param: logicalCol: the logical column of the submatrix within the matrix
-
-    @param: tmpData: a preallocated vector to store the data of an entire matrix in
-
-    @param: matA: the first matrix
-
-    @param: matB: the second matrix
-
-    @param: matC: a pre-allocated, pre-zero filled matrix to store the result in
-    */
-    template<typename Type>
-    bool MultiplyMatricesCannon( int taskID, size_t logicalRow, size_t logicalCol, std::vector< Type > & tmpData, const tMatrix<Type> & matA, const tMatrix<Type> & matB, tMatrix<Type> & matC )
-    {
-        size_t row, col, inner;
-        
-        bool status = true;
-
-        //initialization
-        matA.copyToVector( data );
-
-
-        matB.copyToVector( data );
-
-
-        //repeated multiplication
-        
-
-
-        return status;
-    }
-
-
     /*
     @brief: MultiplyMatrices
 
