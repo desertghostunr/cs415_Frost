@@ -408,6 +408,24 @@ namespace tMath
                 return true;
             }
 
+            /*
+            @brief: copyToVector
+
+            @details: copies the matrix into a std::vector
+
+            @param: data: the vector to copy the data into
+            */
+            void copyToVector( std::vector< Type > & data )
+            {
+                size_t index;
+                vector.resize( 0 );
+                
+                for( index = 0; index < m_rows; index++ )
+                {
+                    data.insert( data.end( ), m_data[ index ].begin( ), m_data[ index ].end( ) );
+                }
+
+            }
 
             //modifiers
              /*

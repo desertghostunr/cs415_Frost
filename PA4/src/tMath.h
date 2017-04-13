@@ -34,6 +34,48 @@ namespace tMath
 
     // templated function declarations ///////////////////////
 
+
+    /*
+    @brief: MultiplyMatricesCannon
+
+    @details: multiplies A and B together and stores the result in C
+
+    @param: taskID: the id of the task
+
+    @param: logicalRow: the logical row of the submatrix within the matrix
+
+    @param: logicalCol: the logical column of the submatrix within the matrix
+
+    @param: tmpData: a preallocated vector to store the data of an entire matrix in
+
+    @param: matA: the first matrix
+
+    @param: matB: the second matrix
+
+    @param: matC: a pre-allocated, pre-zero filled matrix to store the result in
+    */
+    template<typename Type>
+    bool MultiplyMatricesCannon( int taskID, size_t logicalRow, size_t logicalCol, std::vector< Type > & tmpData, const tMatrix<Type> & matA, const tMatrix<Type> & matB, tMatrix<Type> & matC )
+    {
+        size_t row, col, inner;
+        
+        bool status = true;
+
+        //initialization
+        matA.copyToVector( data );
+
+
+        matB.copyToVector( data );
+
+
+        //repeated multiplication
+        
+
+
+        return status;
+    }
+
+
     /*
     @brief: MultiplyMatrices
 
@@ -170,11 +212,13 @@ namespace tMath
 
 
     /*
-    @brief: PrintMatrix
+    @brief: FillMatrixFromFile
 
-    @details: prints out a matrix
+    @details: fills out a matrix
 
-    @param: mat: the matrix to print
+    @param: mat: the matrix to fill
+
+    @param: fileStream: the fileStream used to fill it
     */
     template<typename Type>
     bool FillMatrixFromFile( tMatrix<Type> & mat, std::fstream & fileStream )
@@ -192,6 +236,41 @@ namespace tMath
                 }
 
                 fileStream >> mat( row, col );               
+            }
+        }
+
+        return true;
+    }
+
+    /*
+    @brief: FillMatrix
+
+    @details: fills out a matrix
+
+    @param: mat: the matrix to fill
+
+    @param: data: the vector with the matrices data in order r0 r1 r2 ... rn
+    */
+    template<typename Type>
+    bool FillMatrix( tMatrix<Type> & mat, const std::vector & data )
+    {
+        size_t row, col, vIndex;
+
+        vIndex = 0;
+
+        //matrix filling
+        for( row = 0; row < mat.rows( ); row++ )
+        {
+            for( col = 0; col < mat.cols( ); col++ )
+            {
+                if( vIndex >= data.size( ) )
+                {
+                    return false;
+                }
+
+                mat( row, col ) = data[ vIndex ];
+
+                vIndex++;
             }
         }
 

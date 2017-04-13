@@ -443,10 +443,11 @@ int main( int argc, char *argv[ ] )
             //A
             for( index = 0; index < matrixDim; index++ )
             {
-                matA.getRow( index, rData );
+                
                 for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
                 {
                     MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                    matA.getRow( rIndex, rData );
                     MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 1, MPI_COMM_WORLD );
                 }
             }
@@ -454,10 +455,11 @@ int main( int argc, char *argv[ ] )
             //B
             for( index = 0; index < matrixDim; index++ )
             {
-                matB.getRow( index, rData );
+                
                 for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
                 {
-                    MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+                    MPI_Recv( &rIndex, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+                    matB.getRow( rIndex, rData );
                     MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 2, MPI_COMM_WORLD );
                 }
             }
@@ -465,10 +467,11 @@ int main( int argc, char *argv[ ] )
             //C
             for( index = 0; index < matrixDim; index++ )
             {
-                matC.getRow( index, rData );
+                
                 for( tmpInt = 0; tmpInt < matrixDivider; tmpInt++ )
                 {
                     MPI_Recv( &index, 1, MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
+                    matC.getRow( rIndex, rData );
                     MPI_Send( &rData[ 0 ], rData.size( ), 0, SAVE_CODE + 3, MPI_COMM_WORLD );
                 }
             }
