@@ -418,7 +418,7 @@ namespace tMath
             void copyToVector( std::vector< Type > & data )
             {
                 size_t index;
-                vector.resize( 0 );
+                data.resize( 0 );
                 
                 for( index = 0; index < m_rows; index++ )
                 {

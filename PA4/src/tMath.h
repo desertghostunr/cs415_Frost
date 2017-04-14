@@ -25,7 +25,6 @@
 #include <iostream>
 #include <fstream>
 #include "tMatrix.h"
-#include "mpi.h"
 
 //namespace declaration //////////////////////////////////////
 namespace tMath
@@ -209,7 +208,7 @@ namespace tMath
     @param: data: the vector with the matrices data in order r0 r1 r2 ... rn
     */
     template<typename Type>
-    bool FillMatrix( tMatrix<Type> & mat, const std::vector & data )
+    bool FillMatrix( tMatrix<Type> & mat, const std::vector< Type > & data )
     {
         size_t row, col, vIndex;
 

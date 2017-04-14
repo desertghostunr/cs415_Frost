@@ -6,7 +6,7 @@
 
 @description functions that can be used for timing and time conversion
 
-@author Andrew Frost
+@author 
 
 @version 1.00 ( 03/26/2017 )
 
