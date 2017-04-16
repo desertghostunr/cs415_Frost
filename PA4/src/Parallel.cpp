@@ -301,6 +301,7 @@ int main( int argc, char *argv[ ] )
             if( numberOfValues >= KILL_SWITCH )
             {
                 MPI_Finalize( );
+                return -1;
             }
 
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
@@ -347,6 +348,7 @@ int main( int argc, char *argv[ ] )
             if( numberOfValues >= KILL_SWITCH )
             {
                 MPI_Finalize( );
+                return -1;
             }
 
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
