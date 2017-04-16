@@ -116,7 +116,7 @@ namespace tMath
         {
             for( col = 0; col < mat.cols( ); col++ )
             {
-                mat( row, col ) = rOffset + cOffset + row + col + 1;
+                mat( row, col ) = rOffset + cOffset + row + col + 1;                
             }
         }
     }

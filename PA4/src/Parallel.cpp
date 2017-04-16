@@ -32,7 +32,7 @@
 #define SAVE_FLAG 1
 #define SAVE_CODE 101
 #define SEND_DATA 201
-#define KILL_SWITCH -100
+#define KILL_SWITCH 999999999u
 #define SEED 100102330
 #define UPPER_BOUND 10
 
@@ -102,6 +102,8 @@ int main( int argc, char *argv[ ] )
     //process the data
     if( !( strStream >> numberOfValues ) )
     {
+        MPI_Barrier( MPI_COMM_WORLD );
+
         strStream.str( std::string( "" ) );
         strStream.clear( );
 
@@ -115,7 +117,7 @@ int main( int argc, char *argv[ ] )
 
         fileB = argv[ 2 ];
 
-        //print current data if requested
+        //get whether or not to print data
         saveFlag = -1;
 
         if( argc > 3 )
@@ -128,8 +130,8 @@ int main( int argc, char *argv[ ] )
             strStream >> saveFlag;
         }
 
-        //to do fix opening the files
-        //open the files
+        
+
         if( taskID == 0 )
         {
             fileStream.open( fileA.c_str( ) );
@@ -137,12 +139,21 @@ int main( int argc, char *argv[ ] )
             if( !fileStream.is_open( ) )
             {
                 std::cout << "Error: Could not open " << fileA << std::endl;
+                for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+                {
+                    rIndex = KILL_SWITCH;
+                    MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD );
+                }
                 MPI_Finalize( );
                 return -1;
             }
 
             fileStream >> numberOfValues;
 
+            for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
+            {
+                MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA + 1, MPI_COMM_WORLD );
+            }
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
             {
                 std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
@@ -150,105 +161,154 @@ int main( int argc, char *argv[ ] )
                 MPI_Finalize( );
                 return -1;
             }
-
-            for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
-            {
-                MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA - 1, MPI_COMM_WORLD );
-            }
-
             //fill matrices
-            matrixDim = numberOfValues / matrixDivider;            
+            matrixDim = numberOfValues / matrixDivider;
 
             matA.resize( matrixDim, matrixDim );
 
             rData.resize( matrixDim );
 
-            for( index = 0; index < matrixDim; index++ )
+            //send out data
+            for( index = 0; index < numberOfValues; index++ )
             {
-                
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    fileStream >> matA( index, rIndex );
-                }
-
+                row = index % matrixDim;
                 for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
                 {
-                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim ) );
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
 
                     if( tmpID != 0 )
                     {
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD );
+
                         for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
                         {
                             fileStream >> rData[ rIndex ];
                         }
 
-                        MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
-                    }
-                }
-                
-            }
+                        MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD );
 
+                    }
+                    else
+                    {
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            fileStream >> matA( row, rIndex );
+                        }
+                    }
+
+                    
+                }                
+
+            }
 
             fileStream.close( );
 
             fileStream.clear( );
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD );
+            }
 
             fileStream.open( fileB.c_str( ) );
 
             if( !fileStream.is_open( ) )
             {
                 std::cout << "Error: Could not open " << fileB << std::endl;
+                for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+                {
+                    rIndex = KILL_SWITCH;
+                    MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 2, MPI_COMM_WORLD );
+                }
                 MPI_Finalize( );
                 return -1;
             }
 
             fileStream >> numberOfValues;
 
+            for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
+            {
+                MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA + 2, MPI_COMM_WORLD );
+            }
+
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
             {
                 std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
                 fileStream.close( );
+                
                 MPI_Finalize( );
                 return -1;
             }
 
+            
+
+            //fill matrices
             matrixDim = numberOfValues / matrixDivider;
 
             matB.resize( matrixDim, matrixDim );
 
-            for( index = 0; index < matrixDim; index++ )
-            {
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    fileStream >> matB( index, rIndex );
-                }
+            rData.resize( matrixDim );
 
+            //send out data
+            for( index = 0; index < numberOfValues; index++ )
+            {
+                row = index % matrixDim;
                 for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
                 {
-                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim ) );
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
 
                     if( tmpID != 0 )
                     {
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SEND_DATA + 2, MPI_COMM_WORLD );
+
                         for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
                         {
                             fileStream >> rData[ rIndex ];
                         }
 
-                        MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                        MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SEND_DATA + 2, MPI_COMM_WORLD );
+
+                    }
+                    else
+                    {
+                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                        {
+                            fileStream >> matB( row, rIndex );
+                        }
                     }
                 }
-                
+
             }
 
             fileStream.close( );
 
             fileStream.clear( );
 
-            matC.resize( matrixDim, matrixDim );
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 2, MPI_COMM_WORLD );
+            }
         }
         else
         {
-            MPI_Recv( &numberOfValues, 1, MPI_INT, 0, SEND_DATA - 1, MPI_COMM_WORLD, &status );
+            //A
+            MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+
+            numberOfValues = static_cast< size_t > ( tmpInt );
+
+            if( numberOfValues >= KILL_SWITCH )
+            {
+                MPI_Finalize( );
+            }
+
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
 
             //fill matrices
             matrixDim = numberOfValues / matrixDivider;
@@ -257,48 +317,80 @@ int main( int argc, char *argv[ ] )
 
             rData.resize( matrixDim );
 
-            for( index = 0; index < matrixDim; index++ )
+
+            while( true )
             {
-                
-                for( tmpInt = 1; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
                 {
-                    MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status  );
-                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                    {
-                        matA( index, rIndex ) = rData[ rIndex ];
-                    }
+                    break;
                 }
+
+                row = rIndex;
+
+                MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+                
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    matA( row, rIndex ) = rData[ rIndex ];
+                }
+
             }
 
 
-            MPI_Recv( &numberOfValues, 1, MPI_INT, 0, SEND_DATA - 1, MPI_COMM_WORLD, &status );
+            //B
+            MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
 
-            for( index = 0; index < matrixDim; index++ )
+            numberOfValues = static_cast< size_t > ( tmpInt );
+
+            if( numberOfValues >= KILL_SWITCH )
             {
-                
-                for( tmpInt = 1; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
-                {
-                    
-                    MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status  );
-                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                    {
-                        matB( index, rIndex ) = rData[ rIndex ];
-                    }
-                }
+                MPI_Finalize( );
             }
 
+            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            {
+                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
+                MPI_Finalize( );
+                return -1;
+            }
+
+            //fill matrices
             matrixDim = numberOfValues / matrixDivider;
 
             matB.resize( matrixDim, matrixDim );
 
-            matC.resize( matrixDim, matrixDim );
+            rData.resize( matrixDim );
+
+
+            while( true )
+            {
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
+                {
+                    break;
+                }
+
+                row = rIndex;
+
+                MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
+
+                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                {
+                    matB( row, rIndex ) = rData[ rIndex ];
+                }
+
+            }
         }
+        
         
 
     }
     else
     {
-        //print current data if requested
+        //get whether or not to print data
         saveFlag = -1;
 
         if( argc > 2 )
@@ -322,15 +414,17 @@ int main( int argc, char *argv[ ] )
         matrixDim = numberOfValues / matrixDivider;
 
         //generate matrices
-        matA.resize( matrixDim, matrixDim );
-        matC.resize( matrixDim, matrixDim );
+        matA.resize( matrixDim, matrixDim );       
 
-        tMath::MakeMatrix( matA, matrixDim * ( taskID / matrixDivider ), matrixDim * ( taskID % matrixDivider ) );
+        tMath::MakeMatrix( matA, matrixDim * ( static_cast< size_t > ( taskID ) / matrixDivider ), matrixDim * ( static_cast< size_t > ( taskID ) % matrixDivider ) );
+
+               
 
         matB = matA;
     }
 
     //zero out c
+    matC.resize( matrixDim, matrixDim );
     tMath::ZeroMatrix( matC );
 
     
@@ -362,7 +456,7 @@ int main( int argc, char *argv[ ] )
         eTime = GetCurrentMicroSecTime( );
         finalTime = ConvertTimeToSeconds( eTime - sTime );
     }    
-    
+
     //write out data ///////////////////////////////////////////////////////
     if( saveFlag == SAVE_FLAG )
     {
@@ -371,29 +465,29 @@ int main( int argc, char *argv[ ] )
         if( taskID == 0 )
         {
             std::cout << "Mat A:" << std::endl;            
-
+            
             //write out matrix
-            for( index = 0; index < matrixDim; index++ )
+            for( index = 0; index < numberOfValues; index++ )
             {
-                matA.getRow( index, rData ); //write out master
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    std::cout << rData[ rIndex ] << "\t";
-                }
-                
+                row = index % matrixDim;
                 for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
                 {
-                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim ) );
-                    
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
+
                     if( tmpID != 0 )
                     {
-                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ),MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                        
+                    }
+                    else
+                    {
+                        matA.getRow( index, rData );
+                    }
 
-                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                        {
-                            std::cout << rData[ rIndex ] << "\t";
-                        }
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        std::cout << rData[ rIndex ] << "\t";
                     }
                 }
 
@@ -402,31 +496,39 @@ int main( int argc, char *argv[ ] )
             }
 
             std::cout << std::endl;
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 1, MPI_COMM_WORLD );
+            }
 
             std::cout << "Mat B:" << std::endl;            
 
             //write out matrix
-            for( index = 0; index < matrixDim; index++ )
+            for( index = 0; index < numberOfValues; index++ )
             {
-                matB.getRow( index, rData ); //write out master
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    std::cout << rData[ rIndex ] << "\t";
-                }
-
+                
+                row = index % matrixDim;
                 for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
                 {
-                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim ) );
+                    tmpID = tmpInt + ( matrixDivider * (index / matrixDim ) );
 
                     if( tmpID != 0 )
                     {
-                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
                         MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
 
-                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                        {
-                            std::cout << rData[ rIndex ] << "\t";
-                        }
+                        
+                    }
+                    else
+                    {
+                        matB.getRow( index, rData );
+                    }
+
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        std::cout << rData[ rIndex ] << "\t";
                     }
                 }
 
@@ -435,32 +537,36 @@ int main( int argc, char *argv[ ] )
             }
 
             std::cout << std::endl;
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 2, MPI_COMM_WORLD );
+            }
 
 
             std::cout << "Mat C:" << std::endl;            
 
             //write out matrix
-            for( index = 0; index < matrixDim; index++ )
+            for( index = 0; index < numberOfValues; index++ )
             {
-                matC.getRow( index, rData ); //write out master
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    std::cout << rData[ rIndex ] << "\t";
-                }
-
+                row = index % matrixDim;
                 for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
                 {
-                    tmpID = tmpInt + ( matrixDivider * (rIndex / matrixDim ) );
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
 
                     if( tmpID != 0 )
                     {
-                        MPI_Send( &index, 1, MPI_INT, tmpID, SAVE_CODE + 3, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
-
-                        for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                        {
-                            std::cout << rData[ rIndex ] << "\t";
-                        }
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 3, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 3, MPI_COMM_WORLD, &status );                        
+                    }
+                    else
+                    {
+                        matC.getRow( index, rData ); //write out master
+                    }
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        std::cout << rData[ rIndex ] << "\t";
                     }
                 }
 
@@ -469,44 +575,53 @@ int main( int argc, char *argv[ ] )
             }
 
             std::cout << std::endl;
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 3, MPI_COMM_WORLD );
+            }
         } 
         else
         {
             //A
-            for( index = 0; index < matrixDim; index++ )
+            while( true )
             {
-                
-                for( tmpInt = 1; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
                 {
-                    MPI_Recv( &rIndex, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
-                    
-                    matA.getRow( rIndex, rData );
-                    MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD );
+                    break;
                 }
+                matA.getRow( rIndex, rData );
+                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD );
             }
 
             //B
-            for( index = 0; index < matrixDim; index++ )
+            while( true )
             {
-                
-                for( tmpInt = 1; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
                 {
-                    MPI_Recv( &rIndex, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
-                    matB.getRow( rIndex, rData );
-                    MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD );
+                    break;
                 }
+                matB.getRow( rIndex, rData );
+                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD );
             }
 
             //C
-            for( index = 0; index <  matrixDim; index++ )
+            while( true )
             {
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
                 
-                for( tmpInt = 1; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                if( rIndex >= KILL_SWITCH )
                 {
-                    MPI_Recv( &rIndex, 1, MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD, &status );
-                    matC.getRow( rIndex, rData );
-                    MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD );
+                    break;
                 }
+                matC.getRow( rIndex, rData );
+                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 3, MPI_COMM_WORLD );
             }
         }
         
@@ -520,8 +635,7 @@ int main( int argc, char *argv[ ] )
         std::cout<<numberOfValues<<"\t"<<finalTime<<std::endl;
     }
 
-   // finalize ///////////////////////////////////////////////////////////////////////// 
-    std::cout << "TaskID: " << taskID << std::endl;
+   // finalize /////////////////////////////////////////////////////////////////////////
     MPI_Finalize( );
 
     return 0;
