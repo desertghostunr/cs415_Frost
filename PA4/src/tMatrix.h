@@ -49,7 +49,7 @@ namespace tMath
             @param: cols: the number of cols, integer >= 0
 
             */
-            tMatrix( size_t rows, size_t cols ) : m_data( rows ), m_rows( rows ), m_cols( cols )
+            tMatrix( size_t rows, size_t cols ) : m_data( rows * cols ), m_rows( rows ), m_cols( cols )
             {
                 size_t index;
 
@@ -59,12 +59,7 @@ namespace tMath
                     cols = 0;
                 }
 
-                m_data.resize( rows );
-
-                for( index = 0; index < rows; index++ )
-                {
-                    m_data[ index ].resize( cols );
-                }
+                m_data.resize( rows * cols );
 
             }
 
@@ -159,7 +154,7 @@ namespace tMath
                 {
                     for( col = 0; col < m_cols; col++ )
                     {
-                        retMat( row,col ) = m_data[row ][col] + other(row, col);
+                        retMat( row,col ) = m_data[row * m_cols + col] + other(row, col);
                     }
                 }
 
@@ -189,7 +184,7 @@ namespace tMath
                 {
                     for( col = 0; col < m_cols; col++ )
                     {
-                        retMat( row,col ) = m_data[row ][ col] - other(row, col);
+                        retMat( row,col ) = m_data[row * m_cols + col] - other(row, col);
                     }
                 }
 
@@ -223,7 +218,7 @@ namespace tMath
                         retMat( row, col ) = 0;
                         for( index = 0; index < m_cols; index++ )
                         {
-                            retMat( row,col ) += m_data[row ][ index] * other(index, col);
+                            retMat( row,col ) += m_data[row * m_cols + index] * other(index, col);
                         }
                     }
                 }
@@ -242,7 +237,7 @@ namespace tMath
             */
             Type & operator( )( size_t row, size_t col )
             {
-                return m_data[row][col];
+                return m_data[row * m_cols + col];
             }
 
             /*
@@ -256,7 +251,7 @@ namespace tMath
             */
             const Type & operator( )( size_t row, size_t col ) const
             {
-                return m_data[row][col];
+                return m_data[row * m_cols + col];
             }
 
 
@@ -352,7 +347,7 @@ namespace tMath
                 {
                     for( cols = 0; cols < m_rows; cols++ )
                     {
-                        trans.m_data[ rows ][ cols ] = m_data[ cols ][ rows ];
+                        trans.m_data[ rows * m_cols + cols ] = m_data[ cols * m_rows +  rows ];
                     }
                 }
 
@@ -370,12 +365,18 @@ namespace tMath
             */
             bool getRow( size_t row, std::vector<Type> & destRow )
             {
+                typename std::vector<Type>::const_iterator first, second;
                 if( row >= m_rows )
                 {
                     return false;
                 }
 
-                destRow = m_data[ row ];
+                destRow.resize( 0 );
+
+                first = m_data.begin( ) + ( row * m_cols );
+                second = first + ( m_cols );
+
+                destRow.insert( destRow.end( ), first, second );
 
                 return true;
             }
@@ -400,9 +401,9 @@ namespace tMath
 
                 destCol.resize( m_rows );
 
-                for( index = 0; index < m_cols; index++ )
+                for( index = 0; index < m_rows; index++ )
                 {
-                    destCol[ index ] = m_data[ index ][ col ];
+                    destCol[ index ] = m_data[ index * m_cols + col ];
                 }
 
                 return true;
@@ -417,14 +418,20 @@ namespace tMath
             */
             void copyToVector( std::vector< Type > & data )
             {
-                size_t index;
-                data.resize( 0 );
-                
-                for( index = 0; index < m_rows; index++ )
-                {
-                    data.insert( data.end( ), m_data[ index ].begin( ), m_data[ index ].end( ) );
-                }
+                data = m_data;
 
+            }
+            
+            /*
+            @brief: size( )
+
+            @details: returns the total size (m_cols * m_rows) of the matrix
+
+            @param: none
+            */
+            size_t size( )
+            {
+                return ( m_rows * m_cols );
             }
 
             //modifiers
@@ -441,27 +448,16 @@ namespace tMath
             */
             void resize( size_t rows, size_t cols )
             {
-
-                size_t index;
-
                 m_rows = rows;
                 m_cols = cols;
 
                 if( rows <= 0 || cols <= 0 )
                 {
-                    m_rows = 0; 
-                    m_cols = 0;
-                    m_data.clear( );
+                    clear( );
                     return;
                 }
 
-                m_data.resize( rows );
-
-                for( index = 0; index < rows; index++ )
-                {
-                    m_data[ index ].resize( cols );
-                }
-
+                m_data.resize( rows * cols );
             }
 
 
@@ -486,28 +482,13 @@ namespace tMath
 
             @param: data: the vector to copy the data into
             */
-            bool copyFromVector( const std::vector< Type > & data )
+            void copyFromVector( const std::vector< Type > & data )
             {
-                size_t rows, cols;
-
-                if( m_rows * m_cols != data.size( ) )
-                {
-                    return false;
-                }
-
-                for( rows = 0; rows < m_rows; rows++ )
-                {
-                    for( cols = 0; cols < m_cols; cols++ )
-                    {
-                        m_data[ rows ][ cols ] = data[ rows * m_cols + cols ];
-                    }
-                }
-
-                return true;
+                m_data = data;
             }
 
         private:
-            std::vector< std::vector< Type > > m_data;
+            std::vector< Type > m_data;
             size_t m_rows;
             size_t m_cols;
 

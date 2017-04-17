@@ -56,8 +56,7 @@ int main( int argc, char *argv[ ] )
 
     std::fstream fileStream;
 
-    MPI_Status status;    
-    MPI_Request request;
+    MPI_Status status;
     
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
@@ -101,13 +100,13 @@ int main( int argc, char *argv[ ] )
     strStream.str( argv[ 1 ] );
 
     //process the data
-    if( !( strStream >> numberOfValues ) )
+    if( !( strStream >> numberOfValues ) ) //if not number, then file name
     {
         MPI_Barrier( MPI_COMM_WORLD );
 
         strStream.str( std::string( "" ) );
         strStream.clear( );
-
+        //get file name
         fileA = argv[ 1 ];
 
         if( argc < 2 )
@@ -206,12 +205,14 @@ int main( int argc, char *argv[ ] )
 
             fileStream.clear( );
 
+            //end loop in slaves
             for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
             {
                 rIndex = KILL_SWITCH;
                 MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD );
             }
 
+            //repeat above with matrix b
             fileStream.open( fileB.c_str( ) );
 
             if( !fileStream.is_open( ) )
@@ -391,7 +392,7 @@ int main( int argc, char *argv[ ] )
         
 
     }
-    else
+    else //generate data in place based on number
     {
         //get whether or not to print data
         saveFlag = -1;
@@ -417,8 +418,7 @@ int main( int argc, char *argv[ ] )
         matrixDim = numberOfValues / matrixDivider;
 
         //generate matrices
-        matA.resize( matrixDim, matrixDim );       
-
+        matA.resize( matrixDim, matrixDim );
         tMath::MakeMatrix( matA, matrixDim * ( static_cast< size_t > ( taskID ) / matrixDivider ), matrixDim * ( static_cast< size_t > ( taskID ) % matrixDivider ) );
 
         matB = matA;
@@ -548,10 +548,6 @@ int main( int argc, char *argv[ ] )
 
     rData.clear( );
 
-    //initialize temporary buffers
-    sData.resize( matrixDim * matrixDim );
-    rData.resize( matrixDim * matrixDim );
-
     // MATRIX MULTIPLICATION ///////////////////////////////////////////////////////////////////////
     
     //wait for all processes to be ready
@@ -579,15 +575,11 @@ int main( int argc, char *argv[ ] )
         tmpID += matrixDivider;
     }
 
+    //exchange rows if applicable
     if( tmpID != taskID )
     {
-       
-        matA.copyToVector( sData );
-        MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA, MPI_COMM_WORLD, &request );
-        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
+        MPI_Sendrecv_replace( &matA( 0, 0 ), matA.size( ), MPI_INT, tmpID, SEND_DATA, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
 
-        //copy into A
-        matA.copyFromVector( rData );
     }
     
     //columns
@@ -601,17 +593,14 @@ int main( int argc, char *argv[ ] )
         tmpID = taskID + static_cast< int >( matrixDivider * ( matrixDivider - shiftAmnt ) );
     }
 
+    //exchange columns if applicable
     if( tmpID != taskID )
     {
-        matB.copyToVector( sData );
-        MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD, &request );
-        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-
-        //copy into B
-        matB.copyFromVector( rData );
+        MPI_Sendrecv_replace( &matB( 0, 0 ), matB.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+        
     }    
     
-    MPI_Barrier( MPI_COMM_WORLD );
+    MPI_Barrier( MPI_COMM_WORLD ); //wait for all exchanges to finish
 
     //repeated multiplication
     for( index = 0; index < matrixDivider; index++ )
@@ -632,13 +621,7 @@ int main( int argc, char *argv[ ] )
 
         if( tmpID != taskID )
         {
-
-            matA.copyToVector( sData );
-            MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA, MPI_COMM_WORLD, &request );
-            MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
-
-            //copy into A
-            matA.copyFromVector( rData );
+            MPI_Sendrecv_replace( &matA( 0, 0 ), matA.size( ), MPI_INT, tmpID, SEND_DATA, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
         }
 
         //columns
@@ -654,15 +637,9 @@ int main( int argc, char *argv[ ] )
 
         if( tmpID != taskID )
         {
-            matB.copyToVector( sData );
-            MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD, &request );
-            MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-
-            //copy into B
-            matB.copyFromVector( rData );
+            MPI_Sendrecv_replace( &matB( 0, 0 ), matB.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
         }
 
-        
     }
     
     //make sure everyone is done
