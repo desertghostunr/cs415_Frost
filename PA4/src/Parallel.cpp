@@ -546,6 +546,8 @@ int main( int argc, char *argv[ ] )
 
     }
 
+    rData.clear( );
+
     //initialize temporary buffers
     sData.resize( matrixDim * matrixDim );
     rData.resize( matrixDim * matrixDim );
@@ -675,6 +677,8 @@ int main( int argc, char *argv[ ] )
     //write out data ///////////////////////////////////////////////////////
     if( saveFlag == SAVE_FLAG )
     {
+        rData.resize( matrixDim );
+
         MPI_Barrier( MPI_COMM_WORLD );
 
         if( taskID == 0 )
