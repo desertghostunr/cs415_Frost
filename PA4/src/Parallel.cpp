@@ -44,9 +44,9 @@ int main( int argc, char *argv[ ] )
     double finalTime;
     std::vector< int > rData, sData;
     int tmpInt, saveFlag = 0, shiftAmnt, shiftTest;
-    size_t index, rIndex, tIndex;
+    size_t index, rIndex;
     std::stringstream strStream;
-    size_t numberOfValues, matrixDivider, matrixDim, row, col;
+    size_t numberOfValues, matrixDivider, matrixDim, row;
 
     int numberOfTasks, taskID, tmpID;    
 
