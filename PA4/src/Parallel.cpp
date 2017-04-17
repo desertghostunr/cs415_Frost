@@ -43,7 +43,7 @@ int main( int argc, char *argv[ ] )
     unsigned long long sTime = 0ll, eTime = 0ll;
     double finalTime;
     std::vector< int > rData, sData;
-    int tmpInt, saveFlag = 0;
+    int tmpInt, saveFlag = 0, shiftAmnt, shiftTest;
     size_t index, rIndex, tIndex;
     std::stringstream strStream;
     size_t numberOfValues, matrixDivider, matrixDim, row, col;
@@ -57,6 +57,7 @@ int main( int argc, char *argv[ ] )
     std::fstream fileStream;
 
     MPI_Status status;    
+    MPI_Request request;
     
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
@@ -420,8 +421,6 @@ int main( int argc, char *argv[ ] )
 
         tMath::MakeMatrix( matA, matrixDim * ( static_cast< size_t > ( taskID ) / matrixDivider ), matrixDim * ( static_cast< size_t > ( taskID ) % matrixDivider ) );
 
-               
-
         matB = matA;
     }
 
@@ -429,11 +428,134 @@ int main( int argc, char *argv[ ] )
     matC.resize( matrixDim, matrixDim );
     tMath::ZeroMatrix( matC );
 
+    //write out data ///////////////////////////////////////////////////////
+    if( saveFlag == SAVE_FLAG )
+    {
+        MPI_Barrier( MPI_COMM_WORLD );
+
+        if( taskID == 0 )
+        {
+            std::cout << "Mat A:" << std::endl;
+
+            //write out matrix
+            for( index = 0; index < numberOfValues; index++ )
+            {
+                row = index % matrixDim;
+                for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
+
+                    if( tmpID != 0 )
+                    {
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+
+                    }
+                    else
+                    {
+                        matA.getRow( index, rData );
+                    }
+
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        std::cout << rData[ rIndex ] << "\t";
+                    }
+                }
+
+                std::cout << std::endl;
+
+            }
+
+            std::cout << std::endl;
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 1, MPI_COMM_WORLD );
+            }
+
+            std::cout << "Mat B:" << std::endl;
+
+            //write out matrix
+            for( index = 0; index < numberOfValues; index++ )
+            {
+
+                row = index % matrixDim;
+                for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
+                {
+                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
+
+                    if( tmpID != 0 )
+                    {
+                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
+                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+
+
+                    }
+                    else
+                    {
+                        matB.getRow( index, rData );
+                    }
+
+                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
+                    {
+                        std::cout << rData[ rIndex ] << "\t";
+                    }
+                }
+
+                std::cout << std::endl;
+
+            }
+
+            std::cout << std::endl;
+
+            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
+            {
+                rIndex = KILL_SWITCH;
+                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 2, MPI_COMM_WORLD );
+            }
+        }
+        else
+        {
+            //A
+            while( true )
+            {
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
+                {
+                    break;
+                }
+                matA.getRow( rIndex, rData );
+                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD );
+            }
+
+            //B
+            while( true )
+            {
+                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
+                rIndex = static_cast< size_t > ( tmpInt );
+                if( rIndex >= KILL_SWITCH )
+                {
+                    break;
+                }
+                matB.getRow( rIndex, rData );
+                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD );
+            }
+        }
+
+    }
+
+    //initialize temporary buffers
+    sData.resize( matrixDim * matrixDim );
+    rData.resize( matrixDim * matrixDim );
+
+    // MATRIX MULTIPLICATION ///////////////////////////////////////////////////////////////////////
     
     //wait for all processes to be ready
     MPI_Barrier( MPI_COMM_WORLD );
 
-    //grab the time
+    //get the time
     if( taskID == 0 )
     {
         sTime = GetCurrentMicroSecTime( );
@@ -441,14 +563,105 @@ int main( int argc, char *argv[ ] )
 
     //multiply the matrices using cannon's algorithm
     //initialization
-    /*matA.copyToVector( sData );
-    MPI_Send( &sData[ 0 ], sData.size( ), MPI_INT, 
 
-    matB.copyToVector( sData );
+    //rows
+    //calculate shift amount
+    shiftAmnt = static_cast< int >( static_cast< size_t > ( taskID ) / matrixDivider );
+    tmpID = taskID - shiftAmnt;
 
+    //check if tmpID is in the same row
+    shiftTest = ( static_cast< int >( static_cast< size_t > ( tmpID ) / matrixDivider ) );
 
-    //repeated multiplication*/
+    if( shiftAmnt != shiftTest )
+    {
+        tmpID += matrixDivider;
+    }
+
+    if( tmpID != taskID )
+    {
+       
+        matA.copyToVector( sData );
+        MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA, MPI_COMM_WORLD, &request );
+        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
+
+        //copy into A
+        matA.copyFromVector( rData );
+    }
     
+    //columns
+    //calculate shift amount
+    shiftAmnt = static_cast< int >( static_cast< size_t > ( taskID ) % matrixDivider );
+    tmpID = taskID - static_cast< int >( shiftAmnt * matrixDivider );
+
+    if( tmpID < 0 ) /*if incorrect*/
+    {
+        //then correct
+        tmpID = taskID + static_cast< int >( matrixDivider * ( matrixDivider - shiftAmnt ) );
+    }
+
+    if( tmpID != taskID )
+    {
+        matB.copyToVector( sData );
+        MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD, &request );
+        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+
+        //copy into B
+        matB.copyFromVector( rData );
+    }    
+    
+    MPI_Barrier( MPI_COMM_WORLD );
+
+    //repeated multiplication
+    for( index = 0; index < matrixDivider; index++ )
+    {
+        //multiply matrices
+        tMath::MultiplyMatrices( matA, matB, matC );
+        
+        //shift entries 
+        //rows
+        //calculate shift amount
+        shiftAmnt = 1;
+        tmpID = taskID - shiftAmnt;
+
+        if( tmpID < static_cast< int > (( taskID / matrixDivider ) * matrixDivider ) )
+        {
+            tmpID += matrixDivider;
+        }
+
+        if( tmpID != taskID )
+        {
+
+            matA.copyToVector( sData );
+            MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA, MPI_COMM_WORLD, &request );
+            MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
+
+            //copy into A
+            matA.copyFromVector( rData );
+        }
+
+        //columns
+        //calculate shift amount
+        shiftAmnt = 1;
+        tmpID = taskID - static_cast< int >( shiftAmnt * matrixDivider );
+
+        if( tmpID < 0 ) //if incorrect
+        {
+            //then correct
+            tmpID = taskID + static_cast< int >( matrixDivider * ( matrixDivider - shiftAmnt ) );
+        }
+
+        if( tmpID != taskID )
+        {
+            matB.copyToVector( sData );
+            MPI_Isend( &sData[ 0 ], sData.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_COMM_WORLD, &request );
+            MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
+
+            //copy into B
+            matB.copyFromVector( rData );
+        }
+
+        
+    }
     
     //make sure everyone is done
     MPI_Barrier( MPI_COMM_WORLD );
@@ -466,87 +679,7 @@ int main( int argc, char *argv[ ] )
 
         if( taskID == 0 )
         {
-            std::cout << "Mat A:" << std::endl;            
             
-            //write out matrix
-            for( index = 0; index < numberOfValues; index++ )
-            {
-                row = index % matrixDim;
-                for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
-                {
-                    tmpID = tmpInt + ( matrixDivider * ( index / matrixDim ) );
-
-                    if( tmpID != 0 )
-                    {
-                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
-                        
-                    }
-                    else
-                    {
-                        matA.getRow( index, rData );
-                    }
-
-                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                    {
-                        std::cout << rData[ rIndex ] << "\t";
-                    }
-                }
-
-                std::cout << std::endl;
-                
-            }
-
-            std::cout << std::endl;
-
-            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
-            {
-                rIndex = KILL_SWITCH;
-                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 1, MPI_COMM_WORLD );
-            }
-
-            std::cout << "Mat B:" << std::endl;            
-
-            //write out matrix
-            for( index = 0; index < numberOfValues; index++ )
-            {
-                
-                row = index % matrixDim;
-                for( tmpInt = 0; tmpInt < static_cast<int> ( matrixDivider ); tmpInt++ )
-                {
-                    tmpID = tmpInt + ( matrixDivider * (index / matrixDim ) );
-
-                    if( tmpID != 0 )
-                    {
-                        MPI_Send( &row, 1, MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD );
-                        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, tmpID, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
-
-                        
-                    }
-                    else
-                    {
-                        matB.getRow( index, rData );
-                    }
-
-                    for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                    {
-                        std::cout << rData[ rIndex ] << "\t";
-                    }
-                }
-
-                std::cout << std::endl;
-                
-            }
-
-            std::cout << std::endl;
-
-            for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
-            {
-                rIndex = KILL_SWITCH;
-                MPI_Send( &rIndex, 1, MPI_INT, index, SAVE_CODE + 2, MPI_COMM_WORLD );
-            }
-
-
             std::cout << "Mat C:" << std::endl;            
 
             //write out matrix
@@ -586,31 +719,6 @@ int main( int argc, char *argv[ ] )
         } 
         else
         {
-            //A
-            while( true )
-            {
-                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD, &status );
-                rIndex = static_cast< size_t > ( tmpInt );
-                if( rIndex >= KILL_SWITCH )
-                {
-                    break;
-                }
-                matA.getRow( rIndex, rData );
-                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 1, MPI_COMM_WORLD );
-            }
-
-            //B
-            while( true )
-            {
-                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD, &status );
-                rIndex = static_cast< size_t > ( tmpInt );
-                if( rIndex >= KILL_SWITCH )
-                {
-                    break;
-                }
-                matB.getRow( rIndex, rData );
-                MPI_Send( &rData[ 0 ], rData.size( ), MPI_INT, 0, SAVE_CODE + 2, MPI_COMM_WORLD );
-            }
 
             //C
             while( true )

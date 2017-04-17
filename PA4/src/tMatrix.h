@@ -479,6 +479,33 @@ namespace tMath
                 m_cols = 0;
             }
 
+            /*
+            @brief: copyFromVector
+
+            @details: copies a std::vector into a matrix
+
+            @param: data: the vector to copy the data into
+            */
+            bool copyFromVector( const std::vector< Type > & data )
+            {
+                size_t rows, cols;
+
+                if( m_rows * m_cols != data.size( ) )
+                {
+                    return false;
+                }
+
+                for( rows = 0; rows < m_rows; rows++ )
+                {
+                    for( cols = 0; cols < m_cols; cols++ )
+                    {
+                        m_data[ rows ][ cols ] = data[ rows * m_cols + cols ];
+                    }
+                }
+
+                return true;
+            }
+
         private:
             std::vector< std::vector< Type > > m_data;
             size_t m_rows;
