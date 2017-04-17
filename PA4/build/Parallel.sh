@@ -1,19 +1,24 @@
 #!/bin/bash
 
-file=$1
-save=$2
+file1=$1
+file2=$2
+save=$3
 
-if ! [[ -n "$file" ]]; then
-	file="1000"
+if ! [[ -n "$file1" ]]; then
+	file1="60"
+fi
+
+if ! [[ -n "$file2" ]]; then
+	file2="0"
 fi
 
 if ! [[ -n "$save" ]]; then
 	save="-1"
 fi
 
-#SBATCH -n 2
+#SBATCH -n 4
 #SBATCH --mem=8192
 #SBATCH --time=00:08:00
 #SBATCH -o ../bin/parallel-%j.out
 
-srun Parallel "$file" "$save"
+srun Parallel "$file1" "$file2" "$save"
