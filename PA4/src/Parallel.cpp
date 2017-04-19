@@ -57,6 +57,8 @@ int main( int argc, char *argv[ ] )
     std::fstream fileStream;
 
     MPI_Status status;
+
+    // INITIALIZATION //////////////////////////////////////////
     
     MPI_Init( &argc, &argv );
     MPI_Comm_size( MPI_COMM_WORLD, &numberOfTasks );
@@ -131,7 +133,7 @@ int main( int argc, char *argv[ ] )
         }
 
         
-
+        //open file and send out data
         if( taskID == 0 )
         {
             fileStream.open( fileA.c_str( ) );
@@ -553,7 +555,7 @@ int main( int argc, char *argv[ ] )
     //wait for all processes to be ready
     MPI_Barrier( MPI_COMM_WORLD );
 
-    //get the time
+    //get the time at start
     if( taskID == 0 )
     {
         sTime = GetCurrentMicroSecTime( );
@@ -570,7 +572,7 @@ int main( int argc, char *argv[ ] )
     //check if tmpID is in the same row
     shiftTest = ( static_cast< int >( static_cast< size_t > ( tmpID ) / matrixDivider ) );
 
-    if( shiftAmnt != shiftTest )
+    if( shiftAmnt != shiftTest ) //correct if necessary
     {
         tmpID += matrixDivider;
     }
@@ -645,11 +647,14 @@ int main( int argc, char *argv[ ] )
     //make sure everyone is done
     MPI_Barrier( MPI_COMM_WORLD );
 
-    if( taskID == 0 )
+    //get time
+    if( taskID == 0 ) 
     {
-        eTime = GetCurrentMicroSecTime( );
-        finalTime = ConvertTimeToSeconds( eTime - sTime );
+        eTime = GetCurrentMicroSecTime( );//get the time at completion
+        finalTime = ConvertTimeToSeconds( eTime - sTime ); //convert to run time in seconds
     }    
+
+    // FINISHING UP ///////////////////////////////////////////////////////////
 
     //write out data ///////////////////////////////////////////////////////
     if( saveFlag == SAVE_FLAG )

@@ -5,7 +5,7 @@
 
 @brief templated matrix
 
-@description templated matrix class
+@description a simple templated matrix class
 
 @author 
 
