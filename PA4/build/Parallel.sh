@@ -17,7 +17,7 @@ if ! [[ -n "$save" ]]; then
 fi
 
 #SBATCH -n 4
-#SBATCH --mem=8192
+#SBATCH --mem=2048
 #SBATCH --time=00:08:00
 #SBATCH -o ../bin/parallel-%j.out
 
