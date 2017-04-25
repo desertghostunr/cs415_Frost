@@ -38,9 +38,10 @@
 
 // free function prototypes /////////////////////////////////
 void ShiftLeft( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat );
-void ShiftRight( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat );
 
+void ShiftUp( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat );
 
+void SlaveRecvMat( std::vector< int > & rData, tMath::tMatrix< int > & mat, int syncOffset );
 
 // main /////////////////////////////////////////////////////
 int main( int argc, char *argv[ ] )
@@ -48,8 +49,8 @@ int main( int argc, char *argv[ ] )
     //vars
     unsigned long long sTime = 0ll, eTime = 0ll;
     double finalTime;
-    std::vector< int > rData;//, sData;
-    int tmpInt, saveFlag = 0, shiftAmnt, shiftTest;
+    std::vector< int > rData;
+    int tmpInt, saveFlag = 0, shiftAmnt;
     size_t index, rIndex;
     std::stringstream strStream;
     size_t numberOfValues, matrixDivider, matrixDim, row;
@@ -162,6 +163,7 @@ int main( int argc, char *argv[ ] )
             {
                 MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA + 1, MPI_COMM_WORLD );
             }
+
             if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
             {
                 std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
@@ -169,6 +171,7 @@ int main( int argc, char *argv[ ] )
                 MPI_Finalize( );
                 return -1;
             }
+
             //fill matrices
             matrixDim = numberOfValues / matrixDivider;
 
@@ -235,30 +238,29 @@ int main( int argc, char *argv[ ] )
                 return -1;
             }
 
+            tmpInt = static_cast< int >( numberOfValues );
+
             fileStream >> numberOfValues;
+
+            if( static_cast< size_t > ( tmpInt ) != numberOfValues )
+            {
+                numberOfValues = KILL_SWITCH;
+            }
+
 
             for( tmpInt = 1; tmpInt < numberOfTasks; tmpInt++ )
             {
                 MPI_Send( &numberOfValues, 1, MPI_INT, tmpInt, SEND_DATA + 2, MPI_COMM_WORLD );
             }
 
-            if( numberOfValues % matrixDivider != 0 ) //check for uneven division of matrix dimensions
+            if( numberOfValues == KILL_SWITCH )
             {
-                std::cout << "Error: uneven dimension division from node " << taskID << std::endl;
-                fileStream.close( );
-
+                std::cout << "Error: different matrix sizes between A and B from " << taskID << std::endl;
                 MPI_Finalize( );
                 return -1;
             }
 
-
-
-            //fill matrices
-            matrixDim = numberOfValues / matrixDivider;
-
             matB.resize( matrixDim, matrixDim );
-
-            rData.resize( matrixDim );
 
             //send out data
             for( index = 0; index < numberOfValues; index++ )
@@ -328,26 +330,7 @@ int main( int argc, char *argv[ ] )
 
             rData.resize( matrixDim );
 
-
-            while( true )
-            {
-                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-                rIndex = static_cast< size_t > ( tmpInt );
-                if( rIndex >= KILL_SWITCH )
-                {
-                    break;
-                }
-
-                row = rIndex;
-
-                MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    matA( row, rIndex ) = rData[ rIndex ];
-                }
-
-            }
+            SlaveRecvMat( rData, matA, 1 );
 
 
             //B
@@ -375,26 +358,7 @@ int main( int argc, char *argv[ ] )
 
             rData.resize( matrixDim );
 
-
-            while( true )
-            {
-                MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
-                rIndex = static_cast< size_t > ( tmpInt );
-                if( rIndex >= KILL_SWITCH )
-                {
-                    break;
-                }
-
-                row = rIndex;
-
-                MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SEND_DATA + 2, MPI_COMM_WORLD, &status );
-
-                for( rIndex = 0; rIndex < rData.size( ); rIndex++ )
-                {
-                    matB( row, rIndex ) = rData[ rIndex ];
-                }
-
-            }
+            SlaveRecvMat( rData, matB, 2 );
         }
 
 
@@ -574,41 +538,11 @@ int main( int argc, char *argv[ ] )
     //calculate shift amount
     shiftAmnt = static_cast< int >( static_cast< size_t > ( taskID ) / matrixDivider );
     ShiftLeft( taskID, shiftAmnt, matrixDivider, matA );
-    /*tmpID = taskID - shiftAmnt;
-
-    //check if tmpID is in the same row
-    shiftTest = ( static_cast< int >( static_cast< size_t > ( tmpID ) / matrixDivider ) );
-
-    if( shiftAmnt != shiftTest ) //correct if necessary
-    {
-        tmpID += matrixDivider;
-    }
-
-    //exchange rows if applicable
-    if( tmpID != taskID )
-    {
-        MPI_Sendrecv_replace( &matA( 0, 0 ), matA.size( ), MPI_INT, tmpID, SEND_DATA, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
-
-    }*/
     
     //columns
     //calculate shift amount
     shiftAmnt = static_cast< int >( static_cast< size_t > ( taskID ) % matrixDivider );
-    ShiftRight( taskID, shiftAmnt, matrixDivider, matB );
-    /*tmpID = taskID - static_cast< int >( shiftAmnt * matrixDivider );
-
-    if( tmpID < 0 ) //if incorrect
-    {
-        //then correct
-        tmpID = taskID + static_cast< int >( matrixDivider * ( matrixDivider - shiftAmnt ) );
-    }
-
-    //exchange columns if applicable
-    if( tmpID != taskID )
-    {
-        MPI_Sendrecv_replace( &matB( 0, 0 ), matB.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-        
-    }    */
+    ShiftUp( taskID, shiftAmnt, matrixDivider, matB );
     
 
     MPI_Barrier( MPI_COMM_WORLD ); //wait for all exchanges to finish
@@ -623,39 +557,7 @@ int main( int argc, char *argv[ ] )
         if( index < matrixDivider - 1 )
         {
             ShiftLeft( taskID, 1, matrixDivider, matA );
-            ShiftRight( taskID, 1, matrixDivider, matB );
-            /*
-            //shift entries 
-            //rows
-            //calculate shift amount
-            shiftAmnt = 1;
-            tmpID = taskID - shiftAmnt;
-
-            if( tmpID < static_cast< int > (( taskID / matrixDivider ) * matrixDivider ) )
-            {
-                tmpID += matrixDivider;
-            }
-
-            if( tmpID != taskID )
-            {
-                MPI_Sendrecv_replace( &matA( 0, 0 ), matA.size( ), MPI_INT, tmpID, SEND_DATA, MPI_ANY_SOURCE, SEND_DATA, MPI_COMM_WORLD, &status );
-            }
-
-            //columns
-            //calculate shift amount
-            shiftAmnt = 1;
-            tmpID = taskID - static_cast< int >( shiftAmnt * matrixDivider );
-
-            if( tmpID < 0 ) //if incorrect
-            {
-                //then correct
-                tmpID = taskID + static_cast< int >( matrixDivider * ( matrixDivider - shiftAmnt ) );
-            }
-
-            if( tmpID != taskID )
-            {
-                MPI_Sendrecv_replace( &matB( 0, 0 ), matB.size( ), MPI_INT, tmpID, SEND_DATA + 1, MPI_ANY_SOURCE, SEND_DATA + 1, MPI_COMM_WORLD, &status );
-            }*/
+            ShiftUp( taskID, 1, matrixDivider, matB );
         }
 
     }
@@ -754,6 +656,24 @@ int main( int argc, char *argv[ ] )
 }
 
 // free function implementation ////////////////////////////////////////////////////////
+
+/*******************************
+
+@brief: ShiftLeft
+
+@details: shifts a matrix left
+
+@param: taskID: the task ID
+
+@param: shiftAmnt: the amount to shift the row over
+
+@param: matrixDivider: the number that the input matrix is divided by (equal to the sqrt(number of tasks)
+
+@param: mat: the matrix to shift
+
+@note: none
+
+*******************************/
 void ShiftLeft( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat )
 {
     int tmpID = taskID - shiftAmnt;
@@ -770,7 +690,24 @@ void ShiftLeft( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix<
     }
 }
 
-void ShiftRight( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat )
+/*******************************
+
+@brief: ShiftUp
+
+@details: shifts a matrix Up
+
+@param: taskID: the task ID
+
+@param: shiftAmnt: the amount to shift the row over
+
+@param: matrixDivider: the number that the input matrix is divided by (equal to the sqrt(number of tasks)
+
+@param: mat: the matrix to shift
+
+@note: none
+
+*******************************/
+void ShiftUp( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix< int > & mat )
 {
     int tmpID = taskID - static_cast< int >( shiftAmnt * matrixDivider );
     MPI_Status status;
@@ -787,4 +724,46 @@ void ShiftRight( int taskID, int shiftAmnt, size_t matrixDivider, tMath::tMatrix
     }
 }
 
+/*******************************
+
+@brief: SlaveRecv
+
+@details: receives matrices from the master
+
+@param: rData: the preallocated temporary buffer
+
+@param: mat: the mat being populated
+
+@param: syncOffset: the offset in the send tag
+
+@note: none
+
+*******************************/
+void SlaveRecv( std::vector< int > & rData, tMath::tMatrix< int > & mat, int syncOffset )
+{
+    int tmpInt;
+
+    size_t row, col;
+
+    while( true )
+    {
+        MPI_Recv( &tmpInt, 1, MPI_INT, 0, SEND_DATA + syncOffset, MPI_COMM_WORLD, &status );
+        row = static_cast< size_t > ( tmpInt );
+
+        if( row >= KILL_SWITCH )
+        {
+            break;
+        }
+
+        MPI_Recv( &rData[ 0 ], rData.size( ), MPI_INT, 0, SEND_DATA + syncOffset, MPI_COMM_WORLD, &status );
+
+        for( col = 0; col < rData.size( ); col++ )
+        {
+            mat( row, col ) = rData[ col ];
+        }
+
+    }
+
+
+}
 
