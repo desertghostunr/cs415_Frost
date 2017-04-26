@@ -1,10 +1,15 @@
 #!/bin/bash
 
-file=$1
-save=$2
+file1=$1
+file2=$2
+save=$3
 
-if ! [[ -n "$file" ]]; then
-	file="1000"
+if ! [[ -n "$file1" ]]; then
+	file1="60"
+fi
+
+if ! [[ -n "$file2" ]]; then
+	file2="0"
 fi
 
 if ! [[ -n "$save" ]]; then
@@ -12,8 +17,8 @@ if ! [[ -n "$save" ]]; then
 fi
 
 #SBATCH -n 1
-#SBATCH --mem=8192
-#SBATCH --time=00:08:00
+#SBATCH --mem=2048
+#SBATCH --time=00:07:00
 #SBATCH -o ../bin/sequential-%j.out
 
-./Sequential "$file" "$save"
+./Sequential "$file1" "$file2" "$save"
