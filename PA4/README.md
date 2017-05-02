@@ -47,6 +47,16 @@ or
 sbatch Sequential.sh ../bin/matA.txt ../bin/matB.txt
 ```
 
+To run the parallel algorithm use the following command:
+```bash
+sbatch Parallel.sh 60
+```
+
+or
+
+```bash
+sbatch Parallel.sh ../bin/matA.txt ../bin/matB.txt
+```
 
 To run a set of timing tests do the following:
 ```bash
