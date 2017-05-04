@@ -47,7 +47,7 @@ bool InitializeWithFiles( int taskID, int numberOfTasks, std::string & fileA, st
                           size_t & numberOfValues, size_t & matrixDim, size_t & matrixDivider, 
                           std::vector< int > & rData, tMath::tMatrix< int > & matA, tMath::tMatrix< int > & matB );
 
-bool MasterOpenFile( std::fstream & fileStream, int numberOfTasks, std::string & fileName );
+bool MasterOpenFile( std::fstream & fileStream, int numberOfTasks, std::string & fileName, int syncOffset );
 
 void MasterPopulateMats( std::vector< int > & rData, size_t numberOfValues, 
                          size_t matrixDim, size_t matrixDivider, int numberOfTasks,
@@ -431,7 +431,7 @@ bool InitializeWithFiles
     //open file and send out data
     if( taskID == 0 /*MASTER*/ )
     {
-        if( !MasterOpenFile( fileStream, numberOfTasks, fileA ) )
+        if( !MasterOpenFile( fileStream, numberOfTasks, fileA, 1 ) )
         {
             return false;
         }
@@ -464,7 +464,7 @@ bool InitializeWithFiles
         fileStream.clear( );
 
         //repeat above with matrix b
-        if( !MasterOpenFile( fileStream, numberOfTasks, fileB ) )
+        if( !MasterOpenFile( fileStream, numberOfTasks, fileB, 2 ) )
         {
             return false;
         }
@@ -552,12 +552,14 @@ bool InitializeWithFiles
 
 @param: numberOfTasks: the number of tasks
 
+@param: fileName: the file to open
+
 @param: syncOffset: the offset in the send tag
 
 @note: none
 
 *******************************/
-bool MasterOpenFile( std::fstream & fileStream, int numberOfTasks, std::string & fileName )
+bool MasterOpenFile( std::fstream & fileStream, int numberOfTasks, std::string & fileName, int syncOffset )
 {
     size_t index, rIndex;
 
@@ -569,7 +571,7 @@ bool MasterOpenFile( std::fstream & fileStream, int numberOfTasks, std::string &
         for( index = 1; index < static_cast<size_t> ( numberOfTasks ); index++ )
         {
             rIndex = KILL_SWITCH;
-            MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + 1, MPI_COMM_WORLD );
+            MPI_Send( &rIndex, 1, MPI_INT, index, SEND_DATA + syncOffset, MPI_COMM_WORLD );
         }
         MPI_Finalize( );
         return false;
