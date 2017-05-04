@@ -36,15 +36,19 @@ sbatch Sequential.sh [n: matrix dimensions] [save option: 1 to save, anything el
 
 sbatch Sequential.sh [mat A file] [mat B file] [save option: 1 to save, anything else to not save ]
 
+sbatch -n 4 Parallel.sh [n: matrix dimensions] [save option: 1 to save, anything else to not save ]
+
+sbatch -n 4 Parallel.sh [mat A file] [mat B file] [save option: 1 to save, anything else to not save ]
+
 To run the sequential algorithm use the following command:
 ```bash
-sbatch Sequential.sh 3
+sbatch Sequential.sh 3 1
 ```
 
 or
 
 ```bash
-sbatch Sequential.sh ../bin/matA.txt ../bin/matB.txt
+sbatch Sequential.sh ../bin/matA.txt ../bin/matB.txt 1
 ```
 
 To run the parallel algorithm use the following command:
@@ -55,7 +59,7 @@ sbatch Parallel.sh 60
 or
 
 ```bash
-sbatch Parallel.sh ../bin/matA.txt ../bin/matB.txt
+sbatch Parallel.sh ../bin/matA.txt ../bin/matB.txt 1
 ```
 
 To run a set of timing tests do the following:
