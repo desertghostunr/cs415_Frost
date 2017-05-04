@@ -1,5 +1,5 @@
 CC=mpic++ -std=c++0x
-CXXFLAGS= -O2 -Wall
+CXXFLAGS= -Wall
 LIBS=-lpmi
 
 SRCDIR = ../src
@@ -10,7 +10,7 @@ ifeq "$(wildcard $(SRCDIR) )" ""
 	SRCDIR = src
 endif
 
-all: S 
+all: S P
 
 S: $(S_OBJ_FILES)
 	$(CC) $(CXXFLAGS) -o Sequential $(S_OBJ_FILES)
@@ -21,11 +21,11 @@ P: $(P_OBJ_FILES)
 Sequential.o: $(SRCDIR)/Sequential.cpp $(SRCDIR)/tMath.h $(SRCDIR)/tMatrix.h $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Sequential.cpp $(SRCDIR)/Timer.cpp
 
-Parallel.o: $(SRCDIR)/Parallel.cpp $(SRCDIR)/tMath.h $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
+Parallel.o: $(SRCDIR)/Parallel.cpp $(SRCDIR)/tMath.h $(SRCDIR)/tMatrix.h $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Parallel.cpp $(SRCDIR)/Timer.cpp
 
 Timer.o: $(SRCDIR)/Timer.h $(SRCDIR)/Timer.cpp
 	$(CC) $(CXXFLAGS) -c $(SRCDIR)/Timer.cpp
 
 clean:
-	\rm *.o Sequential generator Parallel
+	\rm *.o Sequential Parallel
